@@ -1,0 +1,144 @@
+
+:root {
+    --bg-primary: #0F101A;
+    --bg-secondary: #1B1C2B;
+    --border-color: #3A3D5A;
+    --primary-color: #3A7BD5;
+    --secondary-color: #00D2FF;
+    --success-color: #27AE60;
+    --text-primary: #EAEAEA;
+    --text-secondary: #9FA2B4;
+    --shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.prediction-selector {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+    background-color: var(--bg-secondary);
+    padding: 8px;
+    border-radius: 50px;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.prediction-selector .disease-toggle {
+    padding: 10px 30px;
+    border-radius: 50px;
+    border: none;
+    background-color: transparent;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.prediction-selector .disease-toggle.active {
+    background-color: var(--primary-color);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(58, 123, 213, 0.4);
+}
+
+.form-cards {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    margin: 20px 10px;
+    padding: 25px;
+    transition: border-color 0.3s ease;
+}
+
+.form-cards.complete {
+    border-color: var(--success-color);
+}
+
+.form-cards.complete .status-icon {
+    color: var(--success-color);
+}
+
+.module-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.module-header i {
+    margin-right: 15px;
+    color: var(--primary-color);
+}
+
+.module-header .status-icon {
+    margin-left: auto;
+    color: var(--border-color);
+    transition: color 0.4s;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px 16px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(58, 123, 213, 0.25);
+}
+
+.submit-container {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.btn-submit {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: #fff;
+    padding: 15px 45px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(58, 123, 213, 0.3);
+}

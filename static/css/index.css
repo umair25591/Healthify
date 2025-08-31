@@ -1,0 +1,112 @@
+.content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+    padding-top: 5rem;
+}
+
+.tag {
+    display: inline-block;
+    padding: 8px 18px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary-gray);
+    border: 1px solid var(--border-color-light);
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    margin-bottom: 1.5rem;
+}
+
+.content h1 {
+    font-size: 4rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.gradient-text {
+    background: linear-gradient(90deg, var(--secondary-accent-lightblue), var(--primary-accent-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+}
+
+.heading-line-two {
+    color: var(--text-primary-white);
+}
+
+.description {
+    font-size: 1.125rem;
+    color: var(--text-secondary-gray);
+    line-height: 1.7;
+    max-width: 650px;
+    margin-bottom: 2.5rem;
+}
+
+.buttons {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn {
+    display: inline-block;
+    padding: 14px 28px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 50px;
+    transition: all 0.3s ease-in-out;
+    border: 2px solid transparent;
+}
+
+.btn-primary {
+    background-color: var(--primary-accent-blue);
+    color: var(--text-primary-white);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-accent-blue-darker);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(33, 150, 243, 0.3);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: var(--text-primary-white);
+    border: 2px solid var(--border-color-light);
+}
+
+.btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--text-primary-white);
+}
+
+@media (max-width: 768px) {
+    .content h1 {
+        font-size: 3rem;
+    }
+
+    .description {
+        font-size: 1rem;
+    }
+
+    .buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn {
+        width: 80%;
+        text-align: center;
+    }
+}

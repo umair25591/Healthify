@@ -1,0 +1,260 @@
+{% extends "layout.html" %}
+
+{% block title %}Prediction Result - Healthify{% endblock %}
+
+{% block content %}
+<style>
+    /* --- YOUR EXISTING STYLES (UNCHANGED) --- */
+    .result-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 40px 20px;
+        background-color: var(--card-bg);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        margin-top: 30px;
+    }
+
+    .progress-circle {
+        position: relative;
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: conic-gradient(var(--primary-color) 0deg, var(--border-color) 0deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 1.5s ease-in-out;
+    }
+
+    .progress-circle::before {
+        content: '';
+        position: absolute;
+        width: 85%;
+        height: 85%;
+        background-color: var(--card-bg);
+        border-radius: 50%;
+    }
+
+    .progress-value {
+        position: relative;
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--text-color);
+    }
+
+    .result-text {
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin-top: 30px;
+        color: var(--text-color);
+    }
+
+    .result-text.high-risk {
+        color: #e74c3c;
+    }
+
+    .result-text.low-risk {
+        color: #2ecc71;
+    }
+
+    .result-summary {
+        font-size: 1.2rem;
+        margin-top: 10px;
+        color: var(--text-light);
+        max-width: 500px;
+    }
+
+    .result-actions {
+        margin-top: 40px;
+        display: flex;
+        gap: 20px;
+    }
+
+    .btn-primary-custom, .btn-secondary-custom {
+        color: #fff;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 50px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+    
+    .btn-primary-custom {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    }
+
+    .btn-primary-custom:hover {
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        color: #fff;
+    }
+
+    .btn-secondary-custom {
+        background-color: transparent;
+        border: 2px solid var(--primary-color);
+        color: var(--primary-color);
+    }
+
+    .btn-secondary-custom:hover {
+        background-color: rgba(96, 165, 250, 0.1);
+    }
+
+
+    .explanation-container {
+        display: grid;
+        grid-template-columns: 60% 40%;
+        gap: 30px;
+        margin-top: 40px;
+        width: 100%;
+        /* max-width: 1200px; */
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    @media (max-width: 992px) {
+        .explanation-container {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .explanation-card {
+        background-color: var(--card-bg);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        padding: 25px 30px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .explanation-card h4 {
+        color: var(--text-color);
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .explanation-card .card-subtitle {
+        color: var(--text-light);
+        margin-bottom: 20px;
+        font-size: 0.95rem;
+    }
+
+    .explanation-card img {
+        width: 100%;
+        max-height: 500px;
+        height: auto;
+        object-fit: contain;
+        border-radius: 10px;
+        margin-top: auto;
+        margin-bottom: auto;
+    }
+
+    .insights-list {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .insights-list li {
+        padding: 15px;
+        margin-bottom: 12px;
+        border-left: 4px solid;
+        border-radius: 8px;
+        background-color: var(--background-color);
+        font-size: 0.9rem;
+        color: var(--text-color);
+    }
+
+    .insights-list li.high-risk {
+        border-color: #e74c3c;
+    }
+
+    .insights-list li.low-risk {
+        border-color: #2ecc71;
+    }
+
+    .insights-list li.secondary {
+        border-color: #95a5a6;
+    }
+
+    .disclaimer {
+        margin-top: 20px;
+        font-size: 0.9rem;
+        padding: 15px;
+        border-radius: 8px;
+        background-color: rgba(243, 156, 18, 0.1);
+        color: var(--text-light);
+    }
+</style>
+
+<div class="result-container">
+    <div class="progress-circle" data-progress="{{ probability }}">
+        <div class="progress-value">{{ probability }}%</div>
+    </div>
+
+    <h1 class="result-text {% if result == 'High Risk' %}high-risk{% else %}low-risk{% endif %}">
+        {{ result }}
+    </h1>
+
+    <p class="result-summary">
+        Your calculated risk of <b>{{ disease }} Disease</b> is <b>{{ probability }}%</b>.
+    </p>
+
+    <div class="result-actions">
+        <a href="{{ url_for('tabular_prediction') }}" class="btn-secondary-custom">New Prediction</a>
+        {% if prediction_id %}
+            <a href="{{ url_for('download_tabular_report', prediction_id=prediction_id) }}" class="btn-primary-custom">Download Report</a>
+        {% endif %}
+        {% if doctor_url %}
+            <a href="{{ doctor_url }}" class="btn-primary-custom">Find a Specialist</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="explanation-container">
+    <div class="explanation-card">
+        <h4><i class="fas fa-chart-bar"></i> Prediction Breakdown</h4>
+        <p class="card-subtitle">
+            This chart illustrates how each factor influenced your predicted risk. Features highlighted in <span
+                style="color:#e74c3c;">red</span> indicate an increased risk, while those in <span
+                style="color:#3498db;">blue</span> suggest a reduced risk.
+        </p>
+        <img src="data:image/png;base64,{{ shap_image }}" alt="SHAP Explanation Plot">
+    </div>
+
+    <div class="explanation-card">
+        <h4><i class="fas fa-lightbulb"></i> Actionable Health Insights</h4>
+        <p class="card-subtitle">
+            Based on your individual profile, these are the most significant factors affecting your risk:
+        </p>
+        <ul class="insights-list">
+            {% for insight in insights %}
+            <li class="{{ insight.class }}">
+                {{ insight.text | safe }} </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const circle = document.querySelector('.progress-circle');
+        const valueElement = document.querySelector('.progress-value');
+        const finalProgress = parseInt(circle.getAttribute('data-progress'), 10);
+        
+        // Set the final value immediately
+        valueElement.textContent = `${finalProgress}%`;
+        
+        // Set the conic gradient for the progress circle
+        circle.style.background = `conic-gradient(var(--primary-color) ${finalProgress * 3.6}deg, var(--border-color) 0deg)`;
+    });
+</script>
+
+{% endblock %}

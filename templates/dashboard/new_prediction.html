@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+
+{% block title %}New Prediction - Healthify{% endblock %}
+
+{% block content %}
+<style>
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+    }
+    .action-card {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: #fff;
+        padding: 40px;
+        border-radius: 15px;
+        text-align: center;
+        cursor: pointer;
+        transition: transform 0.3s, box-shadow 0.3s;
+        text-decoration: none;
+    }
+    .action-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+    }
+    .action-card i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+    }
+    .action-card h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    .action-card p {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+</style>
+
+<header>
+    <div class="header-title">
+        <h1>Start a New Prediction</h1>
+        <p>Choose the type of data you want to analyze.</p>
+    </div>
+    <div class="user-profile">
+        <a href="#">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png" alt="User Avatar">
+            <span>{{ current_user.username }}</span>
+        </a>
+    </div>
+</header>
+
+<div class="quick-actions">
+    <a href="{{ url_for('tabular_prediction') }}" class="action-card">
+        <i class="fas fa-table"></i>
+        <h3>Analyze Tabular Data</h3>
+        <p>Use our form to input health metrics and get a prediction for conditions like heart disease.</p>
+    </a>
+    <a href="{{ url_for('image_prediction') }}" class="action-card">
+        <i class="fas fa-image"></i>
+        <h3>Analyze Image Data</h3>
+        <p>Upload medical images like X-rays or skin photos to detect potential issues.</p>
+    </a>
+</div>
+{% endblock %}

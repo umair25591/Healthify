@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - HEALTHIFY-AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/about.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+
+<body>
+    <spline-viewer class="spline-background"
+        url="https://prod.spline.design/WzfHzjxMsv90OmvJ/scene.splinecode"></spline-viewer>
+    <img class="image-gradient" src="templates/gradient.png" alt="gradient" onerror="this.style.display='none'">
+    <div class="layer-blur"></div>
+
+    <div class="container">
+        
+        {% include 'partials/header.html' %}
+
+        <main>
+            <!-- About Us Sections -->
+            <section id="about-healthify-section" class="about-section" data-aos="fade-up" data-aos-duration="1000">
+                <h2>About HEALTHIFY-AI</h2>
+                <p>
+                    At HEALTHIFY-AI, we are dedicated to revolutionizing personal wellness through cutting-edge
+                    artificial intelligence. Our mission is to empower individuals with actionable insights and
+                    personalized health predictions, helping them lead healthier, more fulfilling lives. We believe that
+                    understanding your health should be simple, accessible, and engaging. Our platform leverages
+                    advanced algorithms to analyze various lifestyle factors, offering a holistic view of your
+                    well-being and guiding you towards optimal health.
+                </p>
+            </section>
+
+            <section class="about-section" data-aos="fade-up" data-aos-duration="1200">
+                <h2>Our Mission & Vision</h2>
+                <div class="features-grid">
+                    <div class="feature-item" data-aos="zoom-in" data-aos-duration="1000">
+                        <i class="fas fa-bullseye"></i>
+                        <h3>Our Mission</h3>
+                        <p>To provide accurate, personalized health insights and predictions, making proactive health
+                            management accessible to everyone, everywhere.</p>
+                    </div>
+                    <div class="feature-item" data-aos="zoom-in" data-aos-duration="1200">
+                        <i class="fas fa-eye"></i>
+                        <h3>Our Vision</h3>
+                        <p>To create a world where individuals are empowered with the knowledge and tools to take
+                            control of their health, fostering a global community of well-being.</p>
+                    </div>
+                    <div class="feature-item" data-aos="zoom-in" data-aos-duration="1400">
+                        <i class="fas fa-heartbeat"></i>
+                        <h3>Our Values</h3>
+                        <p>Innovation, Accuracy, User Empowerment, Privacy, and Continuous Improvement are at the core
+                            of everything we do.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="about-section" data-aos="fade-up" data-aos-duration="1400">
+                <h2>Why Choose Us?</h2>
+                <div class="features-grid">
+                    <div class="feature-item" data-aos="zoom-in" data-aos-duration="1000">
+                        <i class="fas fa-brain"></i>
+                        <h3>AI-Powered Insights</h3>
+                        <p>Leverage advanced AI to get precise and personalized health predictions based on your unique
+                            data.</p>
+                    </div>
+                    <div class="feature-item" data-aos="zoom-in" data-aos-duration="1200">
+                        <i class="fas fa-user-shield"></i>
+                        <h3>Data Privacy & Security</h3>
+                        <p>Your health data is handled with the utmost care, ensuring privacy and robust security
+                            measures.</p>
+                    </div>
+                    <div class="feature-item" data-aos="zoom-in" data-aos-duration="1400">
+                        <i class="fas fa-chart-line"></i>
+                        <h3>Actionable Recommendations</h3>
+                        <p>Receive clear, practical advice and recommendations to improve your health and lifestyle.</p>
+                    </div>
+                    <div class="feature-item" data-aos="zoom-in" data-aos-duration="1600">
+                        <i class="fas fa-hand-holding-heart"></i>
+                        <h3>Holistic Wellness Focus</h3>
+                        <p>We consider all aspects of your well-being, from physical activity to mental health and diet.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="about-section" data-aos="fade-up" data-aos-duration="1600">
+                <h2>Meet Our Team</h2>
+                <div class="team-grid">
+                    <div class="team-member" data-aos="fade-up" data-aos-duration="1000">
+                        <img src="https://placehold.co/120x120/4facfe/FFFFFF?text=JD" alt="Team Member John Doe">
+                        <h3>John Doe</h3>
+                        <p>Founder & CEO</p>
+                        <p>AI visionary with a passion for health tech.</p>
+                    </div>
+                    <div class="team-member" data-aos="fade-up" data-aos-duration="1200">
+                        <img src="https://placehold.co/120x120/4facfe/FFFFFF?text=JS" alt="Team Member Jane Smith">
+                        <h3>Jane Smith</h3>
+                        <p>Lead AI Scientist</p>
+                        <p>Expert in predictive analytics and machine learning.</p>
+                    </div>
+                    <div class="team-member" data-aos="fade-up" data-aos-duration="1400">
+                        <img src="https://placehold.co/120x120/4facfe/FFFFFF?text=AL" alt="Team Member Alex Lee">
+                        <h3>Alex Lee</h3>
+                        <p>Chief Health Officer</p>
+                        <p>Dedicated to holistic wellness and user education.</p>
+                    </div>
+                    <div class="team-member" data-aos="fade-up" data-aos-duration="1600">
+                        <img src="https://placehold.co/120x120/4facfe/FFFFFF?text=EM" alt="Team Member Emily White">
+                        <h3>Emily White</h3>
+                        <p>UI/UX Designer</p>
+                        <p>Crafting intuitive and engaging user experiences.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        {% include 'partials/footer.html' %}
+        
+    </div>
+
+    {% include 'partials/chatbot.html' %}
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script type="module" src="https://unpkg.com/@splinetool/viewer@1.10.33/build/spline-viewer.js"></script>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+    <script> AOS.init(); </script>
+
+</body>
+
+</html>

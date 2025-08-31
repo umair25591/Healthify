@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HEALTHIFY-AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+
+<body>
+    <spline-viewer class="spline-background"
+        url="https://prod.spline.design/WzfHzjxMsv90OmvJ/scene.splinecode"></spline-viewer>
+    <img class="image-gradient" src="templates/gradient.png" alt="gradient" onerror="this.style.display='none'">
+    <div class="layer-blur"></div>
+
+
+
+    <div class="container">
+
+        {% include 'partials/header.html' %}
+
+        <main>
+
+            <div class="content">
+                <div data-aos="fade-up" data-aos-easing="ease-in-out" data-aos-delay="300" data-aos-duration="1000">
+                    <div class="tag">HEALTHIFY &Delta;</div>
+                </div>
+
+                <h1 data-aos="fade-up" data-aos-easing="ease-in-out" data-aos-delay="500" data-aos-duration="1000">
+                    <span class="gradient-text">AI-Powered</span>
+                    <span class="heading-line-two">Health Prediction</span>
+                </h1>
+
+                <p data-aos="fade-up" data-aos-easing="ease-in-out" data-aos-delay="700" data-aos-duration="1000"
+                    class="description">
+                    Our predictive engine identifies potential health risks and opportunities, helping you move from
+                    reacting to illness to proactively managing your well-being. We translate complex health data into
+                    simple, actionable insights.
+                </p>
+
+                <div data-aos="fade-up" data-aos-easing="ease-in-out" data-aos-delay="900" data-aos-duration="1000"
+                    class="buttons">
+                    <a href="{{ url_for('loginPage') }}" class="btn btn-primary">Get Started Now</a>
+                    <a href="#" class="btn btn-secondary">Learn More</a>
+                </div>
+            </div>
+
+            <section class="features-section">
+                <h2 class="section-heading" data-aos="fade-up">Why Choose HEALTHIFY-AI?</h2>
+                <div class="features-grid">
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
+                        <div class="feature-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h3>AI-Powered Foresight</h3>
+                        <p>Our predictive engine identifies potential health risks, helping you move from simply
+                            reacting to illness to proactively managing your well-being.</p>
+                    </div>
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
+                        <div class="feature-icon">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <h3>Personalized & Private</h3>
+                        <p>Receive insights tailored to your unique body and lifestyle. Your data is always anonymized,
+                            encrypted, and kept confidential.</p>
+                    </div>
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>Simple & Actionable</h3>
+                        <p>We translate complex health data into simple scores and visual reports, so you can easily
+                            understand your risks and track your progress.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="how-it-works-section">
+                <h2 class="section-heading" data-aos="fade-up">Your Journey in 3 Simple Steps</h2>
+                <div class="steps-container">
+                    <div class="step" data-aos="fade-right" data-aos-delay="100">
+                        <div class="step-number">01</div>
+                        <div class="step-content">
+                            <h3>Tell Us Your Story</h3>
+                            <p>Securely connect your health apps and answer a few simple questions about your lifestyle
+                                and medical history.</p>
+                        </div>
+                    </div>
+                    <div class="step" data-aos="fade-right" data-aos-delay="200">
+                        <div class="step-number">02</div>
+                        <div class="step-content">
+                            <h3>AI Connects the Dots</h3>
+                            <p>Our system analyzes thousands of data points to build your unique health map and identify
+                                hidden patterns.</p>
+                        </div>
+                    </div>
+                    <div class="step" data-aos="fade-right" data-aos-delay="300">
+                        <div class="step-number">03</div>
+                        <div class="step-content">
+                            <h3>Unlock Your Future</h3>
+                            <p>Receive your personalized dashboard with a health forecast, risk alerts, and actionable
+                                steps for a better life.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="cta-section" data-aos="zoom-in" data-aos-duration="800">
+                <h2 class="cta-heading">Ready to Own Your Tomorrow?</h2>
+                <p class="cta-subheading">The journey to a healthier life starts with a single step. Get the insights
+                    you need to take control today.</p>
+                <a href="{{ url_for('loginPage') }}" class="btn-get-started-main cta-button">Start My Journey ></a>
+            </section>
+
+            {% include 'partials/footer.html' %}
+
+        </main>
+
+    </div>
+
+
+    {% include 'partials/chatbot.html' %}
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script type="module" src="https://unpkg.com/@splinetool/viewer@1.10.33/build/spline-viewer.js"></script>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+    <script> AOS.init();</script>
+</body>
+
+</html>

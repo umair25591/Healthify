@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Suggestions - HEALTHIFY-AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+     <link rel="stylesheet" href="{{ url_for('static', filename='css/about.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+           
+        }
+
+      
+        
+        .feature-card {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .gradient-text {
+            background: -webkit-linear-gradient(#3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+
+<body>
+     <spline-viewer class="spline-background"
+        url="https://prod.spline.design/WzfHzjxMsv90OmvJ/scene.splinecode"></spline-viewer>
+    <img class="image-gradient" src="templates/gradient.png" alt="gradient" onerror="this.style.display='none'">
+    <div class="layer-blur"></div>
+
+    <div class="container mx-auto">
+        {% include 'partials/header.html' %}
+
+        <main>
+            <!-- Hero Section -->
+            <section class="hero-section text-white py-20 px-4">
+                <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h1 class="text-4xl md:text-6xl font-bold leading-tight mb-4"><span class=" gradient-text">Making Health Care</span> <br> Better Together</h1>
+                        <p class="text-lg md:text-xl mb-8 text-gray-400">
+                            Our expert team is dedicated to providing you with the highest quality of care. Explore our departments and find the right specialist for your needs.
+                        </p>
+                        <div class="flex gap-4">
+                            <a href="#" class="bg-blue-600 text-white font-semibold py-3 px-6 rounded-md hover:bg-blue-700 transition duration-300">Make An Appointment</a>
+                           
+                        </div>
+                    </div>
+                    <div class="hidden md:block">
+                        <img src="{{ url_for('static', filename='uploads/DR.PNG') }}" alt="A friendly and professional doctor." class="rounded-lg shadow-2xl">
+                    </div>
+                </div>
+            </section>
+
+            <section id="about-healthify-section" class="about-section" data-aos="fade-up" data-aos-duration="1000">
+                <h2>DR SUDANI KHAN</h2>
+                <p>
+                    At HEALTHIFY-AI, we are dedicated to revolutionizing personal wellness through cutting-edge
+                    artificial intelligence. Our mission is to empower individuals with actionable insights and
+                    personalized health predictions, helping them lead healthier, more fulfilling lives. We believe that
+                    understanding your health should be simple, accessible, and engaging. Our platform leverages
+                    advanced algorithms to analyze various lifestyle factors, offering a holistic view of your
+                    well-being and guiding you towards optimal health.
+                </p>
+            </section>
+
+            <!-- Departments Section -->
+            <section class="py-20 px-4">
+                <div class="max-w-7xl mx-auto">
+                    <h2 class="text-3xl font-bold text-center mb-12 text-white">Our Departments</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        <!-- Heart Specialist -->
+                        <div class="feature-card rounded-lg p-6 text-center">
+                            <div class="text-4xl text-red-500 mb-4">
+                                <i class="fas fa-heartbeat"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold mb-2 text-white">Cardiologist</h3>
+                            <p class="text-gray-400 mb-4">For heart-related issues.</p>
+                            <a href="{{ url_for('heart_doctor') }}" class="text-blue-500 hover:underline">Learn More <i class="fas fa-arrow-right ml-1"></i></a>
+                        </div>
+
+                        <!-- Eye Specialist -->
+                        <div class="feature-card rounded-lg p-6 text-center">
+                            <div class="text-4xl text-blue-500 mb-4">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold mb-2 text-white">Ophthalmologist</h3>
+                            <p class="text-gray-400 mb-4">For eye-related issues.</p>
+                            <a href="{{ url_for('eye_doctor') }}" class="text-blue-500 hover:underline">Learn More <i class="fas fa-arrow-right ml-1"></i></a>
+                        </div>
+
+                        <!-- Kidney Specialist -->
+                        <div class="feature-card rounded-lg p-6 text-center">
+                            <div class="text-4xl text-green-500 mb-4">
+                                <i class="fas fa-kidneys"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold mb-2 text-white">Nephrologist</h3>
+                            <p class="text-gray-400 mb-4">For kidney-related issues.</p>
+                            <a href="{{ url_for('kidney_doctor') }}" class="text-blue-500 hover:underline">Learn More <i class="fas fa-arrow-right ml-1"></i></a>
+                        </div>
+
+                        <!-- Chest Specialist -->
+                        <div class="feature-card rounded-lg p-6 text-center">
+                            <div class="text-4xl text-purple-500 mb-4">
+                                <i class="fas fa-lungs"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold mb-2 text-white">Pulmonologist</h3>
+                            <p class="text-gray-400 mb-4">For chest and lung-related issues.</p>
+                            <a href="{{ url_for('chest_doctor') }}" class="text-blue-500 hover:underline">Learn More <i class="fas fa-arrow-right ml-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {% include 'partials/footer.html' %}
+        </main>
+    </div>
+
+    {% include 'partials/chatbot.html' %}
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+      <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script type="module" src="https://unpkg.com/@splinetool/viewer@1.10.33/build/spline-viewer.js"></script>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+    <script> AOS.init();</script>
+</body>
+
+</html>
+

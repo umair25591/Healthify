@@ -1,0 +1,345 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: #E0F2F7;
+    color: #2C3E50;
+    min-height: 100vh;
+    line-height: 1.5;
+    overflow-x: hidden;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 5rem;
+    position: relative;
+    z-index: 10;
+}
+
+header .logo {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 600;
+    letter-spacing: 0.05rem;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+}
+
+nav a {
+    font-size: 1rem;
+    letter-spacing: 0.05rem;
+    transition: color 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+    font-weight: 500;
+}
+
+nav a:hover {
+    color: #64B5F6;
+}
+
+.btn-signing {
+    background-color: #2196F3;
+    color: white;
+    padding: 0.7rem 1.8rem;
+    border-radius: 50px;
+    border: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
+}
+
+.btn-signing:hover {
+    background-color: #1976D2;
+    transform: translateY(-2px);
+}
+
+/* --- MAIN CONTENT & FORM --- */
+main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    min-height: calc(100vh - 90px);
+}
+
+.form-container {
+    background: var(--background-light);
+    width: 90%;
+    max-width: 550px;
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(0, 150, 255, 0.1);
+    position: relative;
+    z-index: 10;
+    overflow: hidden;
+}
+
+h2 {
+    text-align: center;
+    color: var(--text-primary);
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 2.5rem;
+    text-shadow: 0 0 8px var(--primary-glow);
+}
+
+/* --- QUESTION STYLING & ANIMATIONS --- */
+.question {
+    position: absolute;
+    width: calc(100% - 80px);
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+    transform: translateX(50px);
+}
+
+.question.active {
+    position: relative;
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.question.exiting {
+    transform: translateX(-50px);
+}
+
+
+label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+}
+
+.speaker-icon {
+    font-size: 1rem;
+    margin-left: 10px;
+    cursor: pointer;
+    transition: transform 0.2s ease, text-shadow 0.2s ease;
+}
+
+.speaker-icon:hover {
+    transform: scale(1.2);
+    text-shadow: 0 0 10px var(--primary-glow);
+}
+
+input,
+select {
+    width: 100%;
+    padding: 14px 18px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 1rem;
+    color: var(--text-primary);
+    background-color: var(--background-dark);
+    transition: all 0.3s ease;
+}
+
+.question.active input,
+.question.active select {
+    animation: pulse-border 2s infinite;
+}
+
+input:focus,
+select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 15px var(--primary-glow);
+    outline: none;
+}
+
+@keyframes pulse-border {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 150, 255, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 7px rgba(0, 150, 255, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 150, 255, 0);
+    }
+}
+
+
+/* --- BUTTON STYLING --- */
+button#nextBtn {
+    margin-top: 25px;
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(90deg, #0096FF, #0052D4);
+    color: white;
+    border: none;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button#nextBtn:hover {
+    box-shadow: 0 0 20px var(--primary-glow);
+    transform: translateY(-3px);
+}
+
+/* --- ANALYZING SPINNER --- */
+.analyzer {
+    display: none;
+    text-align: center;
+    padding: 40px 0;
+}
+
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 5px solid var(--border-color);
+    border-top: 5px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px auto;
+}
+
+.analyzer p {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    animation: text-flicker 3s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes text-flicker {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+/* --- RESULTS DISPLAY --- */
+.result {
+    display: none;
+    text-align: left;
+    animation: fadeIn 1s ease-in-out;
+}
+
+.result-title {
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+    text-align: center;
+}
+
+.result p {
+    margin-bottom: 0.8rem;
+}
+
+.disclaimer {
+    font-size: 0.8rem;
+    color: #9CA3AF;
+    margin-top: 1.5rem;
+    font-style: italic;
+    text-align: center;
+}
+
+.result strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* --- RESPONSIVE STYLES --- */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    nav {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    nav {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-container {
+        padding: 30px;
+    }
+
+    h2 {
+        font-size: 2rem;
+    }
+
+    .question {
+        width: calc(100% - 60px);
+    }
+
+    nav {
+        gap: 1.5rem;
+    }
+}

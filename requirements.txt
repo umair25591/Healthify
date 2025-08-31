@@ -1,0 +1,14 @@
+flask
+flask-pymongo
+werkzeug
+flask-login
+python-dotenv
+joblib
+numpy
+pandas
+shap
+tensorflow
+pillow
+fpdf2
+email-validator
+matplotlib

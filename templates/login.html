@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Healthify | Login / Signup</title>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+
+</head>
+
+<body>
+	<div class="container">
+		<div class="forms-container">
+			<div class="signin-signup">
+
+				<!-- Sign In Form -->
+				<form id="signInForm" class="sign-in-form">
+					<h2 class="title">Sign in</h2>
+					<div class="input-field">
+						<i class="fas fa-user"></i>
+						<input type="text" id="login-username" placeholder="Username" />
+					</div>
+					<div class="input-field">
+						<i class="fas fa-lock"></i>
+						<input type="password" id="login-password" placeholder="Password" />
+					</div>
+					<input type="submit" value="Login" class="btn solid" />
+					<div id="signInMessage" class="message"></div>
+					<p class="social-text">Or Sign in with social platforms</p>
+					<div class="social-media">
+						<a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+						<a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+						<a href="#" class="social-icon"><i class="fab fa-google"></i></a>
+						<a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+					</div>
+				</form>
+
+				<!-- Sign Up Form -->
+				<form id="signUpForm" class="sign-up-form">
+					<h2 class="title">Sign up</h2>
+					<div class="input-field">
+						<i class="fas fa-user"></i>
+						<input type="text" id="signup-username" placeholder="Username" />
+					</div>
+					<div class="input-field">
+						<i class="fas fa-envelope"></i>
+						<input type="email" id="signup-email" placeholder="Email" />
+					</div>
+					<div class="input-field">
+						<i class="fas fa-lock"></i>
+						<input type="password" id="signup-password" placeholder="Password" />
+					</div>
+					<input type="submit" class="btn" value="Sign up" />
+					<div id="signUpMessage" class="message"></div>
+					<p class="social-text">Or Sign up with social platforms</p>
+					<div class="social-media">
+						<a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+						<a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+						<a href="#" class="social-icon"><i class="fab fa-google"></i></a>
+						<a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+					</div>
+				</form>
+
+			</div>
+		</div>
+
+		<div class="panels-container">
+			<div class="panel left-panel">
+				<div class="content">
+					<h3>New here ?</h3>
+					<p>
+						Join us today! Create an account to start your journey towards a healthier lifestyle.
+					</p>
+					<button class="btn transparent" id="sign-up-btn">Sign up</button>
+				</div>
+				<img src="https://raw.githubusercontent.com/sefyudem/Responsive-Login-Form/82b8d8ef2b22153836a053c2a3b4d81ee3f03a99/img/log.svg"
+					class="image" alt="" />
+			</div>
+			<div class="panel right-panel">
+				<div class="content">
+					<h3>One of us ?</h3>
+					<p>
+						Welcome back! Please log in to access your account and continue your progress.
+					</p>
+					<button class="btn transparent" id="sign-in-btn">Sign in</button>
+				</div>
+				<img src="https://raw.githubusercontent.com/sefyudem/Responsive-Login-Form/82b8d8ef2b22153836a053c2a3b4d81ee3f03a99/img/register.svg"
+					class="image" alt="" />
+			</div>
+		</div>
+	</div>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+	<script>
+
+		const sign_in_btn = document.querySelector("#sign-in-btn");
+		const sign_up_btn = document.querySelector("#sign-up-btn");
+		const container = document.querySelector(".container");
+
+		sign_up_btn.addEventListener("click", () => {
+			container.classList.add("sign-up-mode");
+		});
+
+		sign_in_btn.addEventListener("click", () => {
+			container.classList.remove("sign-up-mode");
+		});
+
+		$(document).ready(function () {
+
+			function isValidEmail(email) {
+				const regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+				return regex.test(email);
+			}
+
+			$('#signInForm').on('submit', function (e) {
+				e.preventDefault();
+
+				const username = $('#login-username').val();
+				const password = $('#login-password').val();
+				const $message = $('#signInMessage');
+
+				if (!username || !password) {
+					$message.text('Please fill in all fields.').removeClass('success').addClass('error');
+					return;
+				}
+
+				$message.text('').removeClass('error success');
+
+				$.ajax({
+					url: '/login',
+					type: 'POST',
+					contentType: 'application/json',
+					data: JSON.stringify({ username: username, password: password }),
+					success: function (response) {
+						$message.text(response.message || 'Login successful!').removeClass('error').addClass('success');
+						setTimeout(() => {
+							 window.location.href = response.redirect;
+						}, 2000);
+					},
+					error: function (xhr) {
+						const errorMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'An error occurred.';
+						$message.text(errorMsg).removeClass('success').addClass('error');
+					}
+				});
+			});
+
+			$('#signUpForm').on('submit', function (e) {
+				e.preventDefault();
+
+				const username = $('#signup-username').val();
+				const email = $('#signup-email').val();
+				const password = $('#signup-password').val();
+				const $message = $('#signUpMessage');
+
+				if (!username || !email || !password) {
+					$message.text('Please fill in all fields.').removeClass('success').addClass('error');
+					return;
+				}
+				if (!isValidEmail(email)) {
+					$message.text('Please enter a valid email address.').removeClass('success').addClass('error');
+					return;
+				}
+				if (password.length < 6) {
+					$message.text('Password must be at least 6 characters.').removeClass('success').addClass('error');
+					return;
+				}
+
+				$message.text('').removeClass('error success');
+
+				$.ajax({
+					url: '/signup',
+					type: 'POST',
+					contentType: 'application/json',
+					data: JSON.stringify({ username: username, email: email, password: password }),
+					success: function (response) {
+						$message.text(response.message || 'Signup successful! Please log in.').removeClass('error').addClass('success');
+						setTimeout(() => {
+                            container.classList.remove("sign-up-mode");
+                            $('#signUpMessage').text('');
+                            $('#signUpForm')[0].reset();
+                        }, 2000);
+					},
+					error: function (xhr) {
+						const errorMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'An error occurred during signup.';
+						$message.text(errorMsg).removeClass('success').addClass('error');
+					}
+				});
+			});
+		});
+
+	</script>
+</body>
+
+</html>

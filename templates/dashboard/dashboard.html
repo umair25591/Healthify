@@ -1,0 +1,222 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - Healthify{% endblock %}
+
+{% block content %}
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px;
+    }
+    
+    .grid-card {
+        background-color: var(--card-bg);
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: var(--shadow);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .grid-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+
+    .card-full { grid-column: 1 / -1; }
+    .card-two-thirds { grid-column: 1 / 3; }
+    .card-one-third { grid-column: 3 / 4; }
+
+    .card-header a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .quick-actions {
+        display: flex;
+        gap: 20px;
+    }
+    .action-card {
+        flex: 1;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: transform 0.3s;
+        text-decoration: none;
+    }
+    .action-card:hover {
+        transform: scale(1.05);
+    }
+    .action-card i {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+    }
+    .action-card p {
+        font-weight: 600;
+    }
+    
+    .prediction-history-list .item {
+        display: flex;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .prediction-history-list .item:last-child {
+        border-bottom: none;
+    }
+    .prediction-history-list .icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        color: #fff;
+    }
+    .icon.tabular { background-color: #2980b9; }
+    .icon.image { background-color: #8e44ad; }
+
+    .prediction-history-list .details {
+        flex-grow: 1;
+    }
+    .prediction-history-list .details p {
+        margin: 0;
+        font-weight: 500;
+    }
+    .prediction-history-list .details span {
+        font-size: 0.85rem;
+        color: var(--text-light);
+    }
+
+    .prediction-history-list .result {
+        font-weight: 600;
+    }
+    .result.positive { color: #e74c3c; }
+    .result.negative { color: #27ae60; }
+    
+    @media (max-width: 1200px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+        .card-two-thirds, .card-one-third {
+            grid-column: auto;
+        }
+    }
+    @media (max-width: 992px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    @media (max-width: 576px) {
+        .quick-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<header>
+    <div class="header-title">
+        <h1>Welcome back, {{ current_user.username }}!</h1>
+        <p>Here's a summary of your health activity.</p>
+    </div>
+    <div class="user-profile">
+        <a href="#">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png" alt="User Avatar">
+            <span>{{ current_user.username }}</span>
+        </a>
+    </div>
+</header>
+
+<div class="dashboard-grid">
+    
+    <div class="grid-card card-full">
+        <div class="card-header">
+            <h3>Start a New Prediction</h3>
+        </div>
+        <div class="quick-actions">
+            <a href="{{ url_for('tabular_prediction') }}" class="action-card">
+                <i class="fas fa-table"></i>
+                <p>Analyze Tabular Data</p>
+            </a>
+            <a href="{{ url_for('image_prediction') }}" class="action-card">
+                <i class="fas fa-image"></i>
+                <p>Analyze Image Data</p>
+            </a>
+        </div>
+    </div>
+
+    <div class="grid-card card-two-thirds">
+        <div class="card-header">
+            <h3>Recent Predictions</h3>
+            <a href="{{ url_for('history') }}">View All</a>
+        </div>
+        <div class="prediction-history-list">
+            {% if recent_predictions %}
+                {% for record in recent_predictions %}
+                <div class="item">
+                    <div class="icon {{ 'image' if record.disease_type in ['skin', 'xray', 'retinopathy'] else 'tabular' }}">
+                        {# Set icon based on disease type #}
+                        {% if record.disease_type == 'heart' %}<i class="fas fa-heartbeat"></i>
+                        {% elif record.disease_type == 'kidney' %}<i class="fas fa-filter"></i>
+                        {% elif record.disease_type == 'skin' %}<i class="fas fa-allergies"></i>
+                        {% elif record.disease_type == 'xray' %}<i class="fas fa-x-ray"></i>
+                        {% elif record.disease_type == 'retinopathy' %}<i class="fas fa-eye"></i>
+                        {% else %}<i class="fas fa-file-medical"></i>
+                        {% endif %}
+                    </div>
+                    <div class="details">
+                        <p>{{ record.disease_type.replace('_', ' ').title() }}</p>
+                        <span>{{ record.timestamp.strftime('%B %d, %Y') }}</span>
+                    </div>
+                    <div class="result {{ 'positive' if 'High' in record.prediction_result or 'Positive' in record.prediction_result else 'negative' }}">
+                        {{ record.prediction_result }}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="text-align: center; padding: 20px; color: var(--text-light);">
+                    You haven't made any predictions yet.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="grid-card card-one-third">
+        <div class="card-header">
+            <h3>Results Overview</h3>
+        </div>
+        <canvas id="resultsChart"></canvas>
+    </div>
+
+</div>
+
+<script>
+    const chartData = {{ chart_data | tojson }};
+
+    const ctx = document.getElementById('resultsChart').getContext('2d');
+    const resultsChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Negative', 'Positive'],
+            datasets: [{
+                label: 'Prediction Results',
+                // Use the dynamic data here
+                data: [chartData.negative, chartData.positive], 
+                backgroundColor: ['rgba(39, 174, 96, 0.8)', 'rgba(231, 76, 60, 0.8)'],
+                borderColor: ['rgba(39, 174, 96, 1)', 'rgba(231, 76, 60, 1)'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,484 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #0d0c22;
+    color: #ffffff;
+    overflow-x: hidden;
+}
+ /* --- Spline Background --- */
+        .spline-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2; /* Behind all content */
+            opacity: 0.5; /* Make it subtle */
+        }
+
+.spline-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    opacity: 0.5;
+}
+
+main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    min-height: calc(100vh - 90px);
+    padding: 2rem 1rem;
+}
+
+.form-container {
+    background: #1a1936;
+    width: 100%;
+    /* max-width: 650px; */
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+    z-index: 10;
+    overflow: hidden;
+    transition: height 0.4s ease-in-out;
+}
+
+h2 {
+    text-align: center;
+    color: #ffffff;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 2.5rem;
+    text-shadow: 0 0 8px rgba(79, 172, 254, 0.5);
+}
+
+.question {
+    position: absolute;
+    width: 100%;
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+    transform: translateX(50px);
+}
+
+.question.active {
+    position: relative;
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.question.exiting {
+    transform: translateX(-50px);
+}
+
+
+label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: #ffffff;
+}
+
+.speaker-icon,
+.mic-icon {
+    font-size: 1.2rem;
+    margin-left: 10px;
+    cursor: pointer;
+    transition: transform 0.2s ease, text-shadow 0.2s ease;
+}
+
+.speaker-icon:hover,
+.mic-icon:hover {
+    transform: scale(1.2);
+    text-shadow: 0 0 10px rgba(79, 172, 254, 0.7);
+}
+
+.mic-icon.recording {
+    color: #ff4d4d;
+    animation: pulse-mic 1.5s infinite;
+}
+
+@keyframes pulse-mic {
+    0% {
+        transform: scale(1.1);
+        text-shadow: 0 0 5px #ff4d4d;
+    }
+
+    50% {
+        transform: scale(1.3);
+        text-shadow: 0 0 15px #ff4d4d;
+    }
+
+    100% {
+        transform: scale(1.1);
+        text-shadow: 0 0 5px #ff4d4d;
+    }
+}
+
+input,
+select {
+    width: 100%;
+    padding: 14px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    font-size: 1rem;
+    color: #ffffff;
+    background-color: #0d0c22;
+    transition: all 0.3s ease;
+}
+
+.question.active input,
+.question.active select {
+    animation: pulse-border 2s infinite;
+    height: 44px;
+    padding: 0px 15px;
+}
+
+input:focus,
+select:focus {
+    border-color: #4facfe;
+    box-shadow: 0 0 15px rgba(79, 172, 254, 0.5);
+    outline: none;
+}
+
+@keyframes pulse-border {
+    0% {
+        box-shadow: 0 0 0 0 rgba(79, 172, 254, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 7px rgba(79, 172, 254, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(79, 172, 254, 0);
+    }
+}
+
+
+/* --- BUTTON STYLING --- */
+.button-group {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+button#nextBtn,
+button.report-btn {
+    margin-top: 25px;
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(90deg, #4facfe, #00f2fe);
+    color: white;
+    border: none;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+button#nextBtn:hover,
+button.report-btn:hover {
+    box-shadow: 0 0 20px rgba(79, 172, 254, 0.7);
+    transform: translateY(-3px);
+}
+
+/* --- MEDICAL REPORT STYLES --- */
+.medical-report {
+    display: none;
+    text-align: left;
+    animation: fadeIn 1s ease-in-out;
+}
+
+.report-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.report-header h3 {
+    font-size: 2rem;
+    color: #4facfe;
+}
+
+.report-header p {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.report-section {
+    background: #0d0c22;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.report-section h4 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 0.5rem;
+}
+
+.report-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.report-item p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.report-item strong {
+    color: #ffffff;
+}
+
+.disclaimer {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 1.5rem;
+    font-style: italic;
+    text-align: center;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* --- Chatbot Styles --- */
+#chat-window::-webkit-scrollbar {
+    width: 6px;
+}
+
+#chat-window::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+#chat-window::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+#chat-window::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.chat-popup {
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.hidden.chat-popup {
+    transform: translateY(20px);
+    opacity: 0;
+    pointer-events: none;
+}
+
+#chat-container {
+    background: rgba(30, 41, 59, 0.5);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.125);
+}
+
+#chat-container header {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.125);
+}
+
+#chat-window {
+    background: transparent;
+}
+
+#chat-container footer {
+    background: transparent;
+    border-top: 1px solid rgba(255, 255, 255, 0.125);
+}
+
+#message-input {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+#message-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.user-message .message-bubble {
+    background-color: rgba(59, 130, 246, 0.6);
+    color: white;
+}
+
+.bot-message .message-bubble {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+#chat-launcher {
+    background-image: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+}
+
+/* --- Print Styles --- */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    .medical-report,
+    .medical-report * {
+        visibility: visible;
+    }
+
+    .medical-report {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        color: #000;
+        /* Black text for printing */
+    }
+
+    .report-section {
+        border: 1px solid #ccc;
+        background: #fff;
+    }
+
+    .report-item p,
+    .report-item strong,
+    .report-header h3,
+    .report-section h4 {
+        color: #000;
+    }
+
+    .button-group {
+        display: none;
+    }
+}
+
+.tab-navigation {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: color 0.3s ease, border-bottom 0.3s ease;
+    border-bottom: 3px solid transparent;
+}
+
+.tab-btn.active-tab {
+    color: #4facfe;
+    border-bottom: 3px solid #4facfe;
+}
+
+.survey-form {
+    display: none;
+}
+
+.survey-form.active-form {
+    display: block;
+}
+
+#progress-bar-container {
+    width: 100%;
+    background-color: #0d0c22;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+#progress-bar {
+    width: 0%;
+    height: 10px;
+    background: linear-gradient(90deg, #4facfe, #00f2fe);
+    border-radius: 10px;
+    transition: width 0.4s ease-in-out;
+}
+
+/* --- ADD THIS TO THE END OF tabular.css --- */
+
+/* Dashboard Layout Styles */
+#dashboard-container {
+    display: grid;
+    /* This creates the three columns */
+    grid-template-columns: 0.8fr 1.5fr 0.8fr; 
+    gap: 30px; /* Adjust the space between columns */
+    align-items: start;
+}
+
+#form-panel {
+    width: 100%;
+}
+
+#ai-assistant-panel, #info-panel {
+    background: rgba(13, 12, 34, 0.5); /* A slightly different shade for the side panels */
+    padding: 25px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    height: 100%; /* Make panels fill vertical space */
+}
+
+/* AI Assistant Styles */
+#ai-avatar {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    border-radius: 50%;
+    margin: 0 auto 20px auto;
+    animation: pulse-avatar 3s infinite;
+}
+
+@keyframes pulse-avatar {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(79, 172, 254, 0.7); }
+    50% { transform: scale(1.05); box-shadow: 0 0 15px 5px rgba(79, 172, 254, 0.3); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(79, 172, 254, 0); }
+}
+
+#ai-textbox {
+    background-color: #0d0c22;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Info Panel Styles */
+#info-panel h4 {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #4facfe;
+    margin-bottom: 15px;
+}
+
+#info-content-box {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.6;
+}

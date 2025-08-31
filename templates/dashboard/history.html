@@ -1,0 +1,166 @@
+{% extends "layout.html" %}
+
+{% block title %}Prediction History - Healthify{% endblock %}
+
+{% block content %}
+<style>
+    .history-card {
+        background-color: var(--card-bg);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: var(--shadow);
+        border-left: 5px solid var(--primary-color);
+    }
+    .history-card.positive {
+        border-left-color: #e74c3c;
+    }
+    .history-card.negative {
+        border-left-color: #27ae60;
+    }
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .card-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+    }
+    .card-header .icon {
+        margin-right: 12px;
+        font-size: 1.5rem;
+    }
+    .card-header .date {
+        font-size: 0.9rem;
+        color: var(--text-light);
+    }
+    .card-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    .result-section h4 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        color: var(--text-light);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+    }
+    .result-section .result {
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+    .result.positive { color: #e74c3c; }
+    .result.negative { color: #27ae60; }
+
+    .patient-info p {
+        margin: 0 0 8px 0;
+        font-size: 0.95rem;
+    }
+    .patient-info strong {
+        color: var(--text-color);
+    }
+    .card-footer {
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px;
+    }
+    .btn-details, .btn-download {
+        text-decoration: none;
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .btn-details {
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+    }
+    .btn-details:hover {
+        background-color: rgba(96, 165, 250, 0.1);
+    }
+    .btn-download {
+        background-color: var(--primary-color);
+        color: #fff;
+    }
+     .btn-download:hover {
+        background-color: #3b82f6;
+    }
+</style>
+
+<header>
+    <div class="header-title">
+        <h1>Prediction History</h1>
+        <p>Here is a complete record of all your past predictions.</p>
+    </div>
+</header>
+
+<div class="history-container">
+    {% if history %}
+        {% for record in history %}
+        <div class="history-card {{ 'positive' if 'High' in record.prediction_result or 'Positive' in record.prediction_result or 'PNEUMONIA' in record.prediction_result else 'negative' }}">
+            <div class="card-header">
+                <h3>
+                    {% if record.disease_type == 'heart' %}
+                        <i class="fas fa-heartbeat icon"></i>Heart Disease
+                    {% elif record.disease_type == 'kidney' %}
+                        <i class="fas fa-filter icon"></i>Kidney Disease
+                    {% elif record.disease_type == 'xray' %}
+                        <i class="fas fa-x-ray icon"></i>Pneumonia X-Ray
+                    {% elif record.disease_type == 'retinopathy' %}
+                        <i class="fas fa-eye icon"></i>Retinopathy
+                    {% else %}
+                        <i class="fas fa-file-medical icon"></i>Prediction
+                    {% endif %}
+                </h3>
+                <span class="date">{{ record.timestamp.strftime('%B %d, %Y at %I:%M %p') }}</span>
+            </div>
+            <div class="card-body">
+                <div class="result-section">
+                    <h4>Prediction Result</h4>
+                    <p class="result {{ 'positive' if 'High' in record.prediction_result or 'Positive' in record.prediction_result or 'PNEUMONIA' in record.prediction_result else 'negative' }}">
+                        {{ record.prediction_result }} ({{ record.confidence_probability }}%)
+                    </p>
+                </div>
+                <div class="patient-info">
+                    <h4>
+                        {% if record.patient_details %}
+                            Patient Information
+                        {% else %}
+                            User Inputs
+                        {% endif %}
+                    </h4>
+                    {% if record.patient_details %}
+                        <p><strong>Name:</strong> {{ record.patient_details.get('patientName', 'N/A') }}</p>
+                        <p><strong>Age:</strong> {{ record.patient_details.get('patientAge', 'N/A') }}</p>
+                    {% else %}
+                         <p>Tabular data prediction.</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('prediction_details', prediction_id=record._id) }}" class="btn-details">View Full Details</a>
+                {% if record.disease_type in ['xray', 'retinopathy'] %}
+                    <a href="{{ url_for('download_report', prediction_id=record._id) }}" class="btn-download">Download Report</a>
+                {% elif record.disease_type in ['heart', 'kidney'] %}
+                    <a href="{{ url_for('download_tabular_report', prediction_id=record._id) }}" class="btn-download">Download Report</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="grid-card" style="text-align: center; padding: 40px;">
+            <p>You have no prediction history yet.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
