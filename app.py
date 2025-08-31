@@ -24,21 +24,74 @@ from email.message import EmailMessage
 import smtplib
 import ssl
 from threading import Thread
+import requests
+from zipfile import ZipFile
+
+def download_and_extract(url, target_dir, zip_name):
+    os.makedirs(target_dir, exist_ok=True)
+    zip_path = os.path.join(target_dir, zip_name)
+
+    if not os.path.exists(zip_path):
+        print(f"Downloading {zip_name} ...")
+        r = requests.get(url, stream=True)
+        r.raise_for_status()
+        with open(zip_path, "wb") as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                f.write(chunk)
+
+        print(f"Extracting {zip_name} ...")
+        with ZipFile(zip_path, "r") as zip_ref:
+            zip_ref.extractall(target_dir)
+    else:
+        print(f"{zip_name} already downloaded.")
+
+def ensure_models():
+    models = {
+        "tabular_heart_disease_model_v1.pkl": {
+            "url": "https://github.com/RafeyCooper/Healthify/releases/download/v1.0.0/tabular_heart_disease_model_v1.zip",
+            "zip_name": "tabular_heart_disease_model_v1.zip"
+        },
+        "tabular_kidney_disease_model_v1.pkl": {
+            "url": "https://github.com/RafeyCooper/Healthify/releases/download/v1.0.0/tabular_kidney_disease_model_v1.zip",
+            "zip_name": "tabular_kidney_disease_model_v1.zip"
+        },
+        "image_retinopathy_model_v1.h5": {
+            "url": "https://github.com/RafeyCooper/Healthify/releases/download/v1.0.0/image_retinopathy_model_v1.zip",
+            "zip_name": "image_retinopathy_model_v1.zip"
+        },
+        "image_chest_xray_model_v1.h5": {
+            "url": "https://github.com/RafeyCooper/Healthify/releases/download/v1.0.0/image_chest_xray_model_v1.zip",
+            "zip_name": "image_chest_xray_model_v1.zip"
+        }
+    }
+
+    target_dir = "model"
+
+    for model_file, info in models.items():
+        model_path = os.path.join(target_dir, model_file)
+        if not os.path.exists(model_path):
+            print(f"{model_file} missing, downloading...")
+            download_and_extract(info["url"], target_dir, info["zip_name"])
+        else:
+            print(f"{model_file} already exists ✅")
 
 try:
-    heart_model = joblib.load('model/heart_disease_model_6_features_v2.pkl')
-    kidney_model = joblib.load('model/final_kidney_disease_model_train_10_features.pkl')
-    retinopathy_model = load_model('model/Retinopathy-disease-v2.h5')
-    chest_model = load_model('model/chest_xray_model.h5')
+    ensure_models()
+
+    heart_model = joblib.load("model/tabular_heart_disease_model_v1.pkl")
+    kidney_model = joblib.load("model/tabular_kidney_disease_model_v1.pkl")
+    retinopathy_model = load_model("model/image_retinopathy_model_v1.h5")
+    chest_model = load_model("model/image_chest_xray_model_v1.h5")
 
     heart_explainer = shap.TreeExplainer(heart_model)
     kidney_explainer = shap.TreeExplainer(kidney_model)
 
-except FileNotFoundError:
+except Exception as e:
     heart_model = None
     kidney_model = None
     retinopathy_model = None
-    print("Warning: Model file not found. Prediction functionality will be disabled.")
+    chest_model = None
+    print(f"⚠️ Model loading failed: {e}")
 
 load_dotenv()
 
