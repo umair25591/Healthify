@@ -81,7 +81,7 @@
     .analysis-selection, .patient-details-form {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 30px;
+        gap: 15px;
     }
     
     .patient-details-form {
@@ -93,8 +93,13 @@
         box-shadow: var(--shadow);
     }
 
+    /* Utility to make a grid item span the full row */
+    .patient-details-form .full-row {
+        grid-column: 1 / -1;
+    }
+
     .form-group {
-        margin-bottom: 20px;
+        /* margin-bottom: 20px; */
         text-align: left;
     }
 
@@ -113,6 +118,17 @@
         background-color: var(--background-color);
         color: var(--text-color);
         font-size: 1rem;
+    }
+
+    /* Hide spinner arrows in number inputs */
+    .patient-details-form input[type=number]::-webkit-outer-spin-button,
+    .patient-details-form input[type=number]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    .patient-details-form input[type=number] {
+        -moz-appearance: textfield;
+        appearance: textfield;
     }
 
     .analysis-card {
@@ -339,7 +355,7 @@
                 <label for="patientContact">Contact Number</label>
                 <input type="tel" id="patientContact" name="patientContact">
             </div>
-            <div class="form-group">
+            <div class="form-group full-row">
                 <label for="patientEmail">Email Address</label>
                 <input type="email" id="patientEmail" name="patientEmail">
             </div>
@@ -356,7 +372,7 @@
                     <option value="Other">Other</option>
                 </select>
             </div>
-            <div class="btn-group">
+            <div class="btn-group full-row">
                 <button type="button" id="backToTypeBtn" class="btn btn-secondary">Back</button>
                 <button type="submit" id="proceedToUploadBtn" class="btn btn-primary">Proceed to Upload</button>
             </div>
@@ -404,6 +420,7 @@
                 </div>
                 <div class="btn-group" style="margin-top: 30px;">
                     <a id="downloadBtn" class="btn btn-secondary" style="display: none;">Download Report</a>
+                    <button id="bookAnAppointment" class="btn btn-primary">Book an Appointment</button>
                     <button id="startOverBtn" class="btn btn-primary">Start New Analysis</button>
                 </div>
             </div>

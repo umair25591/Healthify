@@ -1,0 +1,1074 @@
+{% extends "Doctor/layout.html" %}
+
+{% block title %}Doctor Dashboard - Healthify{% endblock %}
+
+{% block content %}
+<div class="doctor-dashboard-wrapper">
+    <style>
+        /* Doctor Dashboard Specific Styles - Isolated from sidebar */
+        .doctor-dashboard-wrapper {
+            width: 100%;
+            min-height: 100vh;
+            background: var(--bg-color);
+        }
+
+        .dashboard-container {
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .doctor-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .doctor-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .status-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .status-switch.active {
+            background: #10b981;
+        }
+
+        .status-switch::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .status-switch.active::before {
+            transform: translateX(30px);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .stat-icon.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .stat-icon.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .stat-icon.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .stat-icon.info {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .dr-dashboard-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Widgets */
+        .widget {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .widget:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .widget-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .widget-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Schedule Calendar */
+        .schedule-calendar {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .calendar-nav-btn {
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            background: var(--background-color);
+            color: var(--text-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-nav-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .calendar-day.available {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: #10b981;
+        }
+
+        .calendar-day.unavailable {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+        }
+
+        .calendar-day.today {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .day-number {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .day-status {
+            font-size: 0.7rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Time Slots */
+        .time-slots {
+            margin-top: 1rem;
+        }
+
+        .time-slot {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .time-slot:hover {
+            background: var(--background-color);
+        }
+
+        .time-slot.available {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid #10b981;
+        }
+
+        .time-slot.unavailable {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+        }
+
+        .time-slot-toggle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .time-slot-toggle.available {
+            background: #10b981;
+            border-color: #10b981;
+        }
+
+        .time-slot-toggle.unavailable {
+            background: #ef4444;
+            border-color: #ef4444;
+        }
+
+        /* Appointments */
+        .appointment-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .appointment-item:last-child {
+            border-bottom: none;
+        }
+
+        .appointment-item:hover {
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 8px;
+        }
+
+        .appointment-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .appointment-content h4 {
+            margin: 0;
+            font-size: 0.95rem;
+            color: var(--text-color);
+        }
+
+        .appointment-content p {
+            margin: 0.25rem 0 0 0;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .appointment-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: auto;
+        }
+
+        .action-btn {
+            padding: 0.25rem 0.5rem;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-color);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .action-btn.success:hover {
+            background: #10b981;
+            border-color: #10b981;
+        }
+
+        .action-btn.danger:hover {
+            background: #ef4444;
+            border-color: #ef4444;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .action-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1.5rem;
+            background: var(--background-color);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        .action-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .action-card i {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .action-card span {
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .dashboard-main {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Schedule Summary Styles */
+        .schedule-summary {
+            margin-top: 1rem;
+        }
+
+        .schedule-summary h4 {
+            margin: 0 0 1rem 0;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        .schedule-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: var(--card-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .schedule-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .schedule-time {
+            font-weight: 500;
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+
+        .schedule-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .schedule-status.available {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .schedule-status.booked {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .schedule-status.break {
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-icon:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+    </style>
+
+    <div class="dashboard-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="header-content">
+                <div class="doctor-info">
+                    <div class="doctor-avatar">
+                        <i class="fas fa-user-md"></i>
+                    </div>
+                    <div>
+                        <h1>{{ session.get('doctor_name', 'Doctor') }}</h1>
+                        <p>Welcome back! Here's your dashboard overview</p>
+                    </div>
+                </div>
+                <div class="status-toggle">
+                    <span>Status:</span>
+                    <div class="status-switch" id="statusSwitch">
+                        <input type="checkbox" id="statusToggle" style="display: none;">
+                    </div>
+                    <span id="statusText">Inactive</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card fade-in" style="animation-delay: 0.1s;">
+                <div class="stat-header">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                </div>
+                <div class="stat-number">{{ appointments|length }}</div>
+                <div class="stat-label">Today's Appointments</div>
+            </div>
+
+            <div class="stat-card fade-in" style="animation-delay: 0.2s;">
+                <div class="stat-header">
+                    <div class="stat-icon success">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+                <div class="stat-number">{{ appointments|selectattr('status', 'equalto', 'confirmed')|list|length }}
+                </div>
+                <div class="stat-label">Confirmed</div>
+            </div>
+
+            <div class="stat-card fade-in" style="animation-delay: 0.3s;">
+                <div class="stat-header">
+                    <div class="stat-icon warning">
+                        <i class="fas fa-user-clock"></i>
+                    </div>
+                </div>
+                <div class="stat-number">{{ appointments|selectattr('status', 'equalto', 'active')|list|length }}</div>
+                <div class="stat-label">In Progress</div>
+            </div>
+
+            <div class="stat-card fade-in" style="animation-delay: 0.4s;">
+                <div class="stat-header">
+                    <div class="stat-icon info">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+                <div class="stat-number">{{ appointments|selectattr('status', 'equalto', 'completed')|list|length }}
+                </div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="content-grid">
+            <div class="dashboard-main">
+                <!-- Today's Appointments -->
+                <div class="widget fade-in">
+                    <div class="widget-header">
+                        <div class="widget-title">
+                            <i class="fas fa-calendar-alt"></i>
+                            Today's Appointments
+                        </div>
+                    </div>
+                    {% if appointments %}
+                    {% for appointment in appointments %}
+                    <div class="appointment-item">
+                        <div class="appointment-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="appointment-content">
+                            <h4>{{ appointment.patient_name or 'Patient' }}</h4>
+                            <p>
+                                <i class="fas fa-clock"></i> {{ appointment.start_at.strftime('%I:%M %p') }} - {{
+                                appointment.end_at.strftime('%I:%M %p') }} |
+                                <i class="fas fa-stethoscope"></i> {{ specialties[appointment.specialty].name }} |
+                                <span class="status-badge status-{{ appointment.status }}">{{
+                                    appointment.status|capitalize }}</span>
+                            </p>
+                            {% if appointment.notes %}
+                            <p style="margin-top: 0.5rem; font-style: italic;">{{ appointment.notes }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="appointment-actions">
+                            <form id="form-{{ appointment._id }}" method="POST"
+                                action="{{ url_for('doctor_update_status', appointment_id=appointment._id) }}"
+                                style="display:none;">
+                                <input type="hidden" name="status" value="" />
+                            </form>
+                            <a href="{{ url_for('doctor_appointment_detail', appointment_id=appointment._id) }}" class="action-btn">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            <button class="action-btn success" onclick="submitStatus('{{ appointment._id }}','active')">
+                                <i class="fas fa-play"></i> Start
+                            </button>
+                            <button class="action-btn" onclick="submitStatus('{{ appointment._id }}','completed')">
+                                <i class="fas fa-check"></i> Complete
+                            </button>
+                            <button class="action-btn danger"
+                                onclick="submitStatus('{{ appointment._id }}','cancelled')">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div style="text-align: center; padding: 2rem; color: var(--text-light);">
+                        <i class="fas fa-calendar-times"
+                            style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p>No appointments scheduled for today</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Schedule Calendar -->
+                <div class="schedule-calendar fade-in">
+                    <div class="widget-header">
+                        <div class="widget-title">
+                            <i class="fas fa-calendar"></i>
+                            Weekly Schedule
+                        </div>
+                        <button class="btn-icon" onclick="openScheduleModal()" title="Manage Schedule">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                    <div class="calendar-header">
+                        <h3 id="currentMonth">December 2024</h3>
+                        <div class="calendar-nav">
+                            <button class="calendar-nav-btn" onclick="previousWeek()">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="calendar-nav-btn" onclick="nextWeek()">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid">
+                        <!-- Calendar days will be populated by JavaScript -->
+                    </div>
+                    <div class="schedule-summary">
+                        <h4>Today's Schedule</h4>
+                        <div id="todaySchedule" style="height: calc(100% - 80px); overflow-y: auto;">
+                            <div class="schedule-item">
+                                <div class="schedule-time">09:00 - 09:30</div>
+                                <div class="schedule-status available">Available</div>
+                            </div>
+                            <div class="schedule-item">
+                                <div class="schedule-time">10:00 - 10:30</div>
+                                <div class="schedule-status booked">Booked</div>
+                            </div>
+                            <div class="schedule-item">
+                                <div class="schedule-time">11:00 - 11:30</div>
+                                <div class="schedule-status available">Available</div>
+                            </div>
+                            <div class="schedule-item">
+                                <div class="schedule-time">14:00 - 14:30</div>
+                                <div class="schedule-status available">Available</div>
+                            </div>
+                            <div class="schedule-item">
+                                <div class="schedule-time">15:00 - 15:30</div>
+                                <div class="schedule-status booked">Booked</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dr-dashboard-sidebar">
+                <!-- Quick Actions -->
+                <div class="widget fade-in">
+                    <div class="widget-header">
+                        <div class="widget-title">
+                            <i class="fas fa-bolt"></i>
+                            Quick Actions
+                        </div>
+                    </div>
+                    <div class="quick-actions">
+                        <a href="{{ url_for('doctor_patients') }}" class="action-card">
+                            <i class="fas fa-users"></i>
+                            <span>Patient Directory</span>
+                        </a>
+                        <a href="{{ url_for('schedule_managment') }}" class="action-card">
+                            <i class="fas fa-clock"></i>
+                            <span>Schedule Management</span>
+                        </a>
+                        <a href="#" class="action-card" onclick="openProfileModal()">
+                            <i class="fas fa-user-edit"></i>
+                            <span>Edit Profile</span>
+                        </a>
+                        <a href="{{ url_for('doctor_logout') }}" class="action-card">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="widget fade-in">
+                    <div class="widget-header">
+                        <div class="widget-title">
+                            <i class="fas fa-history"></i>
+                            Recent Activity
+                        </div>
+                    </div>
+                    <div class="activity-list">
+                        <div class="appointment-item">
+                            <div class="appointment-icon">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="appointment-content">
+                                <h4>Appointment Completed</h4>
+                                <p>2 hours ago</p>
+                            </div>
+                        </div>
+                        <div class="appointment-item">
+                            <div class="appointment-icon">
+                                <i class="fas fa-calendar-plus"></i>
+                            </div>
+                            <div class="appointment-content">
+                                <h4>New Appointment</h4>
+                                <p>4 hours ago</p>
+                            </div>
+                        </div>
+                        <div class="appointment-item">
+                            <div class="appointment-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="appointment-content">
+                                <h4>Schedule Updated</h4>
+                                <p>1 day ago</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Health Tips -->
+                <div class="widget fade-in">
+                    <div class="widget-header">
+                        <div class="widget-title">
+                            <i class="fas fa-lightbulb"></i>
+                            Health Tips
+                        </div>
+                    </div>
+                    <div style="color: var(--text-light); font-size: 0.9rem; line-height: 1.5;">
+                        <p><strong>💡 Tip:</strong> Regular exercise can reduce the risk of heart disease by up to 30%.
+                        </p>
+                        <p><strong>💡 Tip:</strong> Drinking 8 glasses of water daily helps maintain kidney health.</p>
+                        <p><strong>💡 Tip:</strong> Annual eye checkups can detect early signs of diabetic retinopathy.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Status Toggle
+        document.addEventListener('DOMContentLoaded', function () {
+            const statusSwitch = document.getElementById('statusSwitch');
+            const statusToggle = document.getElementById('statusToggle');
+            const statusText = document.getElementById('statusText');
+
+            // Load saved status
+            const savedStatus = localStorage.getItem('doctorStatus') || 'inactive';
+            updateStatus(savedStatus === 'active');
+
+            statusSwitch.addEventListener('click', function () {
+                const newStatus = statusToggle.checked ? 'inactive' : 'active';
+                updateStatus(!statusToggle.checked);
+                localStorage.setItem('doctorStatus', newStatus);
+
+                // Send status update to server
+                updateDoctorStatus(newStatus);
+            });
+
+            function updateStatus(isActive) {
+                statusToggle.checked = isActive;
+                statusSwitch.classList.toggle('active', isActive);
+                statusText.textContent = isActive ? 'Active' : 'Inactive';
+            }
+
+            function updateDoctorStatus(status) {
+                // Send AJAX request to update status
+                fetch('/doctor/update-status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ status: status })
+                }).then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log('Status updated successfully');
+                        }
+                    }).catch(error => {
+                        console.error('Error updating status:', error);
+                    });
+            }
+        });
+
+        // Appointment Status Functions
+        function submitStatus(id, status) {
+            const form = document.getElementById('form-' + id);
+            const input = form.querySelector('input[name="status"]');
+            input.value = status;
+            form.submit();
+        }
+
+        // Calendar Functions
+        let currentDate = new Date();
+        let selectedDate = new Date();
+
+        function renderCalendar() {
+            const calendarGrid = document.getElementById('calendarGrid');
+            const currentMonth = document.getElementById('currentMonth');
+
+            // Clear previous calendar
+            calendarGrid.innerHTML = '';
+
+            // Set month display
+            currentMonth.textContent = currentDate.toLocaleDateString('en-US', {
+                month: 'long',
+                year: 'numeric'
+            });
+
+            // Get week start (Sunday)
+            const weekStart = new Date(currentDate);
+            weekStart.setDate(currentDate.getDate() - currentDate.getDay());
+
+            // Generate calendar days
+            for (let i = 0; i < 7; i++) {
+                const day = new Date(weekStart);
+                day.setDate(weekStart.getDate() + i);
+
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                dayElement.onclick = () => selectDate(day);
+
+                const isToday = day.toDateString() === new Date().toDateString();
+                const isSelected = day.toDateString() === selectedDate.toDateString();
+
+                if (isToday) dayElement.classList.add('today');
+                if (isSelected) dayElement.classList.add('selected');
+
+                // Random availability for demo
+                const isAvailable = Math.random() > 0.3;
+                if (isAvailable) dayElement.classList.add('available');
+                else dayElement.classList.add('unavailable');
+
+                dayElement.innerHTML = `
+            <div class="day-number">${day.getDate()}</div>
+            <div class="day-status">${isAvailable ? 'Available' : 'Busy'}</div>
+        `;
+
+                calendarGrid.appendChild(dayElement);
+            }
+
+            renderTimeSlots();
+        }
+
+        function selectDate(date) {
+            selectedDate = date;
+            renderCalendar();
+        }
+
+        function previousWeek() {
+            currentDate.setDate(currentDate.getDate() - 7);
+            renderCalendar();
+        }
+
+        function nextWeek() {
+            currentDate.setDate(currentDate.getDate() + 7);
+            renderCalendar();
+        }
+
+        function renderTimeSlots() {
+            const timeSlotsList = document.getElementById('timeSlotsList');
+            timeSlotsList.innerHTML = '';
+
+            const timeSlots = [
+                '09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
+                '12:00 PM', '12:30 PM', '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM',
+                '04:00 PM', '04:30 PM', '05:00 PM', '05:30 PM'
+            ];
+
+            timeSlots.forEach(time => {
+                const slotElement = document.createElement('div');
+                slotElement.className = 'time-slot';
+                slotElement.onclick = () => toggleTimeSlot(slotElement);
+
+                const isAvailable = Math.random() > 0.4;
+                if (isAvailable) slotElement.classList.add('available');
+                else slotElement.classList.add('unavailable');
+
+                slotElement.innerHTML = `
+            <div class="time-slot-toggle ${isAvailable ? 'available' : 'unavailable'}"></div>
+            <span>${time}</span>
+        `;
+
+                timeSlotsList.appendChild(slotElement);
+            });
+        }
+
+        function toggleTimeSlot(slotElement) {
+            const toggle = slotElement.querySelector('.time-slot-toggle');
+            const isAvailable = slotElement.classList.contains('available');
+
+            if (isAvailable) {
+                slotElement.classList.remove('available');
+                slotElement.classList.add('unavailable');
+                toggle.classList.remove('available');
+                toggle.classList.add('unavailable');
+            } else {
+                slotElement.classList.remove('unavailable');
+                slotElement.classList.add('available');
+                toggle.classList.remove('unavailable');
+                toggle.classList.add('available');
+            }
+        }
+
+        // Initialize calendar
+        renderCalendar();
+
+        // Add smooth animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function (entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all widgets and cards
+        document.querySelectorAll('.widget, .stat-card').forEach(element => {
+            observer.observe(element);
+        });
+    </script>
+
+</div>
+{% endblock %}

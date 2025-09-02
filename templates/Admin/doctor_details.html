@@ -1,0 +1,493 @@
+{% extends "Admin/layout.html" %}
+
+{% block title %}Doctor Details - Healthify{% endblock %}
+
+{% block content %}
+<style>
+    /* Doctor Details Page Styles */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    .header-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .back-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .back-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+    }
+    
+    /* Doctor Profile Section */
+    .doctor-profile {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        border: 1px solid var(--border-color);
+        margin-bottom: 2rem;
+    }
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .doctor-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: white;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
+    .doctor-info h1 {
+        margin: 0 0 0.5rem 0;
+        color: var(--text-color);
+        font-size: 2rem;
+    }
+    .doctor-specialty {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+    .doctor-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    .status-badge.active {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        border: 1px solid #10b981;
+    }
+    .status-badge.inactive {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: 1px solid #ef4444;
+    }
+    .profile-actions {
+        display: flex;
+        gap: 1rem;
+        margin-left: auto;
+    }
+    .action-btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .action-btn.edit {
+        background: var(--primary-color);
+        color: white;
+        border: 1px solid var(--primary-color);
+    }
+    .action-btn.edit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    .action-btn.delete {
+        background: transparent;
+        color: #ef4444;
+        border: 1px solid #ef4444;
+    }
+    .action-btn.delete:hover {
+        background: #ef4444;
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    /* Details Grid */
+    .details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    .detail-section {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        border: 1px solid var(--border-color);
+    }
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+    .detail-label {
+        font-weight: 500;
+        color: var(--text-light);
+        font-size: 0.9rem;
+    }
+    .detail-value {
+        font-weight: 600;
+        color: var(--text-color);
+    }
+    .bio-text {
+        color: var(--text-color);
+        line-height: 1.6;
+        font-style: italic;
+    }
+    
+    /* Appointments Section */
+    .appointments-section {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        border: 1px solid var(--border-color);
+    }
+    .appointment-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+    }
+    .appointment-item:last-child {
+        border-bottom: none;
+    }
+    .appointment-item:hover {
+        background: rgba(102, 126, 234, 0.05);
+        border-radius: 8px;
+    }
+    .appointment-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        color: white;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .appointment-content h4 {
+        margin: 0;
+        font-size: 0.95rem;
+        color: var(--text-color);
+    }
+    .appointment-content p {
+        margin: 0.25rem 0 0 0;
+        font-size: 0.85rem;
+        color: var(--text-light);
+    }
+    .appointment-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-left: auto;
+    }
+    .appointment-status.confirmed {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        border: 1px solid #10b981;
+    }
+    .appointment-status.completed {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        border: 1px solid #3b82f6;
+    }
+    .appointment-status.cancelled {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: 1px solid #ef4444;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .details-grid {
+            grid-template-columns: 1fr;
+        }
+        .profile-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        .profile-actions {
+            margin-left: 0;
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-content">
+            <div>
+                <h1>Doctor Details</h1>
+                <p>View comprehensive information about the doctor</p>
+            </div>
+            <a href="{{ url_for('admin_doctors') }}" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+                Back to Doctors
+            </a>
+        </div>
+    </div>
+
+    <!-- Doctor Profile -->
+    <div class="doctor-profile">
+        <div class="profile-header">
+            <div class="doctor-avatar">
+                <i class="fas fa-user-md"></i>
+            </div>
+            <div class="doctor-info">
+                <h1>{{ doctor.full_name }}</h1>
+                <div class="doctor-specialty">
+                    <i class="fas fa-stethoscope"></i>
+                    {{ specialties[doctor.specialty].name }}
+                </div>
+                <div class="doctor-status">
+                    <span class="status-badge {{ doctor.status }}">
+                        <i class="fas fa-circle"></i>
+                        {{ doctor.status|capitalize }}
+                    </span>
+                </div>
+                <p style="color: var(--text-light); margin: 0;">
+                    <i class="fas fa-envelope"></i> {{ doctor.email }} | 
+                    <i class="fas fa-phone"></i> {{ doctor.phone }}
+                </p>
+            </div>
+            <div class="profile-actions">
+                <a href="{{ url_for('admin_edit_doctor', doctor_id=doctor._id) }}" class="action-btn edit">
+                    <i class="fas fa-edit"></i>
+                    Edit Doctor
+                </a>
+                <button onclick="deleteDoctor('{{ doctor._id }}')" class="action-btn delete">
+                    <i class="fas fa-trash"></i>
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Grid -->
+    <div class="details-grid">
+        <!-- Personal Information -->
+        <div class="detail-section">
+            <div class="section-title">
+                <i class="fas fa-user"></i>
+                Personal Information
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Full Name</span>
+                <span class="detail-value">{{ doctor.full_name }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Email</span>
+                <span class="detail-value">{{ doctor.email }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Phone</span>
+                <span class="detail-value">{{ doctor.phone }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Status</span>
+                <span class="detail-value">
+                    <span class="status-badge {{ doctor.status }}">
+                        {{ doctor.status|capitalize }}
+                    </span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Professional Information -->
+        <div class="detail-section">
+            <div class="section-title">
+                <i class="fas fa-graduation-cap"></i>
+                Professional Information
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Specialty</span>
+                <span class="detail-value">{{ specialties[doctor.specialty].name }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">License Number</span>
+                <span class="detail-value">{{ doctor.license_number }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Experience</span>
+                <span class="detail-value">{{ doctor.experience_years }} years</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Qualification</span>
+                <span class="detail-value">{{ doctor.qualification }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Information -->
+    <div class="details-grid">
+        <!-- Hospital & Fees -->
+        <div class="detail-section">
+            <div class="section-title">
+                <i class="fas fa-hospital"></i>
+                Hospital & Fees
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Hospital</span>
+                <span class="detail-value">{{ doctor.hospital or 'Not specified' }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Consultation Fee</span>
+                <span class="detail-value">${{ "%.2f"|format(doctor.consultation_fee) }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Availability</span>
+                <span class="detail-value">{{ doctor.availability|capitalize }}</span>
+            </div>
+        </div>
+
+        <!-- Bio & Notes -->
+        <div class="detail-section">
+            <div class="section-title">
+                <i class="fas fa-file-alt"></i>
+                Bio & Notes
+            </div>
+            <div class="bio-text">
+                {% if doctor.bio %}
+                    {{ doctor.bio }}
+                {% else %}
+                    <em>No bio information available.</em>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Appointments -->
+    <div class="appointments-section">
+        <div class="section-title">
+            <i class="fas fa-calendar-alt"></i>
+            Recent Appointments
+        </div>
+        {% if appointments %}
+            {% for appointment in appointments %}
+            <div class="appointment-item">
+                <div class="appointment-icon">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="appointment-content">
+                    <h4>Patient Appointment</h4>
+                    <p>
+                        <i class="fas fa-clock"></i> {{ appointment.start_at.strftime('%I:%M %p') }} - {{ appointment.end_at.strftime('%I:%M %p') }} |
+                        <i class="fas fa-calendar"></i> {{ appointment.start_at.strftime('%B %d, %Y') }} |
+                        <i class="fas fa-stethoscope"></i> {{ specialties[appointment.specialty].name }}
+                    </p>
+                    {% if appointment.notes %}
+                    <p style="margin-top: 0.5rem; font-style: italic; color: var(--text-light);">
+                        {{ appointment.notes }}
+                    </p>
+                    {% endif %}
+                </div>
+                <span class="appointment-status {{ appointment.status }}">
+                    {{ appointment.status|capitalize }}
+                </span>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div style="text-align: center; padding: 2rem; color: var(--text-light);">
+                <i class="fas fa-calendar-times" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                <p>No appointments found for this doctor.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function deleteDoctor(doctorId) {
+    if (confirm('Are you sure you want to delete this doctor? This action cannot be undone.')) {
+        fetch(`/admin/doctors/${doctorId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        }).then(response => {
+            if (response.ok) {
+                window.location.href = '{{ url_for("admin_doctors") }}';
+            } else {
+                alert('Failed to delete doctor. Please try again.');
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while deleting the doctor.');
+        });
+    }
+}
+</script>
+{% endblock %}

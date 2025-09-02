@@ -1,0 +1,339 @@
+{% extends "Admin/layout.html" %}
+
+{% block title %}Manage Specialties - Healthify{% endblock %}
+
+{% block content %}
+<style>
+    .page-header { 
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    .header-content { position: relative; z-index: 1; }
+    .specialties-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    .specialty-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .specialty-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    }
+    .specialty-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .specialty-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+    }
+    .specialty-info h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+    .specialty-key {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        font-family: monospace;
+        background: var(--background-color);
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+    }
+    .specialty-description {
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+        line-height: 1.5;
+    }
+    .specialty-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    .detail-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+    .detail-value {
+        font-size: 0.9rem;
+        color: var(--text-color);
+        font-weight: 500;
+    }
+    .specialty-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+    .btn {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+    }
+    .btn-primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+    .btn-secondary {
+        background: var(--secondary-color);
+        color: white;
+    }
+    .btn-secondary:hover {
+        background: var(--secondary-dark);
+        transform: translateY(-1px);
+    }
+    .btn-danger {
+        background: #ef4444;
+        color: white;
+    }
+    .btn-danger:hover {
+        background: #dc2626;
+        transform: translateY(-1px);
+    }
+    .btn-sm {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    .status-active {
+        background: #dcfce7;
+        color: #166534;
+    }
+    .status-inactive {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-muted);
+    }
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    .stats-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .stat-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        border: 1px solid var(--border-color);
+    }
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+    .stat-label {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="page-header">
+    <div class="header-content">
+        <h1><i class="fas fa-stethoscope"></i> Manage Specialties</h1>
+        <p>Add, edit, and manage medical specialties for the platform</p>
+    </div>
+</div>
+
+<div class="stats-cards">
+    <div class="stat-card">
+        <div class="stat-number">{{ specialties|length }}</div>
+        <div class="stat-label">Total Specialties</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ specialties|selectattr('is_active')|list|length }}</div>
+        <div class="stat-label">Active Specialties</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ specialties|rejectattr('is_active')|list|length }}</div>
+        <div class="stat-label">Inactive Specialties</div>
+    </div>
+</div>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h2 style="margin: 0; color: var(--text-color);">All Specialties</h2>
+    <a href="{{ url_for('admin_add_specialty') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Add Specialty
+    </a>
+</div>
+
+{% if specialties %}
+    <div class="specialties-grid">
+        {% for specialty in specialties %}
+        <div class="specialty-card">
+            <div class="specialty-header">
+                <div class="specialty-icon" style="background: {{ specialty.color }}">
+                    <i class="{{ specialty.icon }}"></i>
+                </div>
+                <div class="specialty-info">
+                    <h3>{{ specialty.name }}</h3>
+                    <div class="specialty-key">{{ specialty.key }}</div>
+                </div>
+                <div class="status-badge status-{{ 'active' if specialty.is_active else 'inactive' }}">
+                    <i class="fas fa-{{ 'check' if specialty.is_active else 'times' }}"></i>
+                    {{ 'Active' if specialty.is_active else 'Inactive' }}
+                </div>
+            </div>
+            
+            {% if specialty.description %}
+            <div class="specialty-description">{{ specialty.description }}</div>
+            {% endif %}
+            
+            <div class="specialty-details">
+                <div class="detail-item">
+                    <div class="detail-label">Doctor Name</div>
+                    <div class="detail-value">{{ specialty.doctor_name or 'Not assigned' }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Doctor Email</div>
+                    <div class="detail-value">{{ specialty.doctor_email or 'Not assigned' }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Icon</div>
+                    <div class="detail-value">{{ specialty.icon }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Color</div>
+                    <div class="detail-value">{{ specialty.color }}</div>
+                </div>
+            </div>
+            
+            <div class="specialty-actions">
+                <button class="btn btn-sm btn-secondary" onclick="toggleSpecialty('{{ specialty._id }}', {{ specialty.is_active|lower }})">
+                    <i class="fas fa-{{ 'pause' if specialty.is_active else 'play' }}"></i>
+                    {{ 'Deactivate' if specialty.is_active else 'Activate' }}
+                </button>
+                <a href="{{ url_for('admin_edit_specialty', specialty_id=specialty._id) }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+                <button class="btn btn-sm btn-danger" onclick="deleteSpecialty('{{ specialty._id }}', '{{ specialty.name }}')">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="empty-state">
+        <i class="fas fa-stethoscope"></i>
+        <h3>No Specialties Found</h3>
+        <p>Get started by adding your first medical specialty.</p>
+        <a href="{{ url_for('admin_add_specialty') }}" class="btn btn-primary" style="margin-top: 1rem;">
+            <i class="fas fa-plus"></i> Add First Specialty
+        </a>
+    </div>
+{% endif %}
+
+<script>
+function toggleSpecialty(specialtyId, currentStatus) {
+    if (!confirm(`Are you sure you want to ${currentStatus ? 'deactivate' : 'activate'} this specialty?`)) {
+        return;
+    }
+    
+    fetch(`/admin/specialties/${specialtyId}/toggle`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while updating the specialty.');
+    });
+}
+
+function deleteSpecialty(specialtyId, specialtyName) {
+    if (!confirm(`Are you sure you want to delete "${specialtyName}"? This action cannot be undone.`)) {
+        return;
+    }
+    
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/admin/specialties/${specialtyId}/delete`;
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+{% endblock %}

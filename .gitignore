@@ -28,6 +28,7 @@ Thumbs.db
 *.joblib
 *.ckpt
 *.keras
+model/*.zip
 
 # PDFs and reports
 *.pdf

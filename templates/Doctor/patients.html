@@ -1,0 +1,613 @@
+{% extends "Doctor/layout.html" %}
+
+{% block title %}Patient Directory - Healthify{% endblock %}
+
+{% block content %}
+<div class="patients-wrapper">
+    <style>
+        /* Patients Directory Specific Styles - Matching Dashboard Theme */
+        .patients-wrapper {
+            width: 100%;
+            min-height: 100vh;
+            background: var(--bg-color);
+        }
+
+        .patients-container {
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Page Header - Matching Dashboard */
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .page-header h2 {
+            margin: 0 0 0.5rem 0;
+            color: white;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.8);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Search and Filter Section */
+        .search-filter-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .search-filter-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--background-color);
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+
+        .filter-select {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--background-color);
+            color: var(--text-color);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-btn {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Stats Cards */
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Patients Grid */
+        .patients-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .patient-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .patient-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+            border-color: var(--primary-color);
+        }
+
+        .patient-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .patient-info h3 {
+            margin: 0 0 0.5rem 0;
+            color: var(--text-color);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .patient-contact {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .patient-stats {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--background-color);
+            border-radius: 8px;
+            min-width: 80px;
+        }
+
+        .stat-item-number {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .stat-item-label {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            text-align: center;
+        }
+
+        .patient-specialties {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .specialty-tag {
+            padding: 0.25rem 0.75rem;
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary-color);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .patient-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .action-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .action-btn.primary {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .action-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Pagination */
+        .pagination-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding: 1rem;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .pagination-info {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .page-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            background: var(--background-color);
+            color: var(--text-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .page-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .page-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            margin: 0 0 1rem 0;
+            color: var(--text-color);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .search-filter-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .patient-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .patient-stats {
+                flex-wrap: wrap;
+            }
+
+            .patient-actions {
+                flex-wrap: wrap;
+            }
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
+    <div class="patients-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h2><i class="fas fa-users"></i> Patient Directory</h2>
+            <p>Manage and view all your patients with comprehensive search and filtering options.</p>
+        </div>
+
+        <!-- Search and Filter Section -->
+        <div class="search-filter-section">
+            <form method="GET" action="{{ url_for('doctor_patients') }}" class="search-filter-grid">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" name="search" placeholder="Search by name, email, or phone..." 
+                           value="{{ search }}" autocomplete="off">
+                </div>
+                <select name="status" class="filter-select">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+                    {% for status in all_statuses %}
+                    <option value="{{ status }}" {% if status_filter == status %}selected{% endif %}>
+                        {{ status|title }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <select name="specialty" class="filter-select">
+                    <option value="all" {% if specialty_filter == 'all' %}selected{% endif %}>All Specialties</option>
+                    {% for specialty in all_specialties %}
+                    <option value="{{ specialty }}" {% if specialty_filter == specialty %}selected{% endif %}>
+                        {{ specialties[specialty].name if specialty in specialties else specialty|title }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="search-btn">
+                    <i class="fas fa-filter"></i> Filter
+                </button>
+            </form>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="stats-section">
+            <div class="stat-card fade-in">
+                <div class="stat-number">{{ total_patients }}</div>
+                <div class="stat-label">Total Patients</div>
+            </div>
+            <div class="stat-card fade-in">
+                <div class="stat-number">{{ patients|selectattr('statuses', 'contains', 'completed')|list|length }}</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-card fade-in">
+                <div class="stat-number">{{ patients|selectattr('statuses', 'contains', 'confirmed')|list|length }}</div>
+                <div class="stat-label">Confirmed</div>
+            </div>
+            <div class="stat-card fade-in">
+                <div class="stat-number">{{ patients|selectattr('statuses', 'contains', 'active')|list|length }}</div>
+                <div class="stat-label">Active</div>
+            </div>
+        </div>
+
+        <!-- Patients Grid -->
+        <div class="patients-grid">
+            {% if patients %}
+                {% for patient in patients %}
+                <div class="patient-card fade-in" onclick="window.location.href='{{ url_for('doctor_patient_profile', patient_email=patient.patient_email) }}'">
+                    <div class="patient-header">
+                        <div class="patient-info">
+                            <h3>{{ patient.patient_name }}</h3>
+                            <div class="patient-contact">
+                                <i class="fas fa-envelope"></i> {{ patient.patient_email }}
+                                {% if patient.patient_phone %}
+                                <br><i class="fas fa-phone"></i> {{ patient.patient_phone }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="patient-actions">
+                            <a href="{{ url_for('doctor_patient_profile', patient_email=patient.patient_email) }}" 
+                               class="action-btn primary" onclick="event.stopPropagation()">
+                                <i class="fas fa-user"></i> Profile
+                            </a>
+                            <a href="#" class="action-btn" onclick="event.stopPropagation(); sendMessage('{{ patient.patient_email }}')">
+                                <i class="fas fa-comment"></i> Message
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="patient-stats">
+                        <div class="stat-item">
+                            <div class="stat-item-number">{{ patient.total_appointments }}</div>
+                            <div class="stat-item-label">Appointments</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-item-number">{{ patient.specialties|length }}</div>
+                            <div class="stat-item-label">Specialties</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-item-number">{{ (patient.last_appointment - patient.first_appointment).days if patient.last_appointment != patient.first_appointment else 0 }}</div>
+                            <div class="stat-item-label">Days</div>
+                        </div>
+                    </div>
+                    
+                    <div class="patient-specialties">
+                        {% for specialty in patient.specialties %}
+                        <span class="specialty-tag">
+                            {{ specialties[specialty].name if specialty in specialties else specialty|title }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-users"></i>
+                    <h3>No patients found</h3>
+                    <p>Try adjusting your search criteria or filters to find patients.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Pagination -->
+        {% if total_pages > 1 %}
+        <div class="pagination-section">
+            <div class="pagination-info">
+                Showing page {{ page }} of {{ total_pages }} ({{ total_patients }} total patients)
+            </div>
+            <div class="pagination-controls">
+                {% if page > 1 %}
+                <a href="{{ url_for('doctor_patients', page=page-1, search=search, status=status_filter, specialty=specialty_filter) }}" 
+                   class="page-btn">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </a>
+                {% endif %}
+                
+                {% for p in range(max(1, page-2), min(total_pages+1, page+3)) %}
+                <a href="{{ url_for('doctor_patients', page=p, search=search, status=status_filter, specialty=specialty_filter) }}" 
+                   class="page-btn {% if p == page %}active{% endif %}">
+                    {{ p }}
+                </a>
+                {% endfor %}
+                
+                {% if page < total_pages %}
+                <a href="{{ url_for('doctor_patients', page=page+1, search=search, status=status_filter, specialty=specialty_filter) }}" 
+                   class="page-btn">
+                    Next <i class="fas fa-chevron-right"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Auto-submit form on filter change
+    document.querySelectorAll('.filter-select').forEach(select => {
+        select.addEventListener('change', function() {
+            this.closest('form').submit();
+        });
+    });
+
+    // Send message function (placeholder)
+    function sendMessage(patientEmail) {
+        // TODO: Implement messaging system
+        alert('Messaging system coming soon!');
+    }
+
+    // Add smooth animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function (entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Observe all patient cards
+    document.querySelectorAll('.patient-card').forEach(element => {
+        observer.observe(element);
+    });
+</script>
+{% endblock %}

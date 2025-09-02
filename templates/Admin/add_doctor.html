@@ -1,0 +1,456 @@
+{% extends "Admin/layout.html" %}
+
+{% block title %}Add Doctor - Healthify{% endblock %}
+
+{% block content %}
+<style>
+    .page-header { 
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    .header-content { position: relative; z-index: 1; }
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .form-card {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        border: 1px solid var(--border-color);
+        animation: slideUp 0.6s ease-out;
+    }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .form-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-top: 20px;
+    }
+    .form-grid.full {
+        grid-template-columns: 1fr;
+    }
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .form-group label {
+        font-weight: 500;
+        color: var(--text-color);
+        font-size: 0.95rem;
+        margin-left: 5px;
+    }
+    .form-group label.required::after {
+        content: ' *';
+        color: #ef4444;
+    }
+    .form-control {
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        background: var(--background-color);
+        color: var(--text-color);
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        transform: translateY(-1px);
+    }
+    .form-control.error {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+    .form-control.success {
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+    .form-control::placeholder {
+        color: var(--text-light);
+        opacity: 0.7;
+    }
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border-color);
+    }
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s ease;
+    }
+    .btn:hover::before {
+        left: 100%;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    .btn-secondary {
+        background: var(--background-color);
+        color: var(--text-color);
+        border: 2px solid var(--border-color);
+    }
+    .btn-secondary:hover {
+        background: var(--border-color);
+        transform: translateY(-2px);
+    }
+    .help-text {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        margin-top: 0.25rem;
+    }
+    .error-text {
+        font-size: 0.85rem;
+        color: #ef4444;
+        margin-top: 0.25rem;
+    }
+    .success-text {
+        font-size: 0.85rem;
+        color: #10b981;
+        margin-top: 0.25rem;
+    }
+    .floating-label {
+        position: relative;
+    }
+    .floating-label input:focus + label,
+    .floating-label input:not(:placeholder-shown) + label {
+        transform: translateY(-1.5rem) scale(0.85);
+        color: var(--primary-color);
+    }
+    .floating-label label {
+        position: absolute;
+        left: 1rem;
+        top: 0.75rem;
+        transition: all 0.3s ease;
+        pointer-events: none;
+        color: var(--text-light);
+    }
+    .progress-bar {
+        width: 100%;
+        height: 4px;
+        background: var(--border-color);
+        border-radius: 2px;
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        width: 0%;
+        transition: width 0.3s ease;
+        border-radius: 2px;
+    }
+</style>
+
+<div class="page-header">
+    <div class="header-content">
+        <h1><i class="fas fa-user-plus"></i> Add New Doctor</h1>
+        <p>Register a new healthcare professional to your network</p>
+    </div>
+</div>
+
+<div class="form-container">
+    <div class="form-card">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <form method="POST" action="{{ url_for('admin_add_doctor') }}" id="doctorForm">
+            <!-- Personal Information -->
+            <div class="form-section">
+                <div class="section-title">
+                    <i class="fas fa-user"></i>
+                    Personal Information
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="full_name" class="required">Full Name</label>
+                        <input type="text" id="full_name" name="full_name" class="form-control" required 
+                               placeholder="Dr. John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="email" class="required">Email Address</label>
+                        <input type="email" id="email" name="email" class="form-control" required 
+                               placeholder="john.doe@hospital.com">
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="phone" class="required">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" class="form-control" required 
+                               placeholder="+1 (555) 123-4567">
+                    </div>
+                    <div class="form-group">
+                        <label for="password" class="required">Password</label>
+                        <input type="password" id="password" name="password" class="form-control" required 
+                               placeholder="Enter secure password" minlength="6">
+                        <div class="help-text">Minimum 6 characters</div>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="specialty" class="required">Medical Specialty</label>
+                        <select id="specialty" name="specialty" class="form-control" required>
+                            <option value="">Select specialty</option>
+                            {% for key, spec in specialties.items() %}
+                                <option value="{{ key }}">{{ spec.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm_password" class="required">Confirm Password</label>
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-control" required 
+                               placeholder="Confirm your password">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Professional Information -->
+            <div class="form-section">
+                <div class="section-title">
+                    <i class="fas fa-graduation-cap"></i>
+                    Professional Information
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="license_number" class="required">Medical License Number</label>
+                        <input type="text" id="license_number" name="license_number" class="form-control" required 
+                               placeholder="MD123456789">
+                    </div>
+                    <div class="form-group">
+                        <label for="experience_years" class="required">Years of Experience</label>
+                        <input type="number" id="experience_years" name="experience_years" class="form-control" required 
+                               min="0" max="50" placeholder="10">
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="qualification" class="required">Medical Qualification</label>
+                        <input type="text" id="qualification" name="qualification" class="form-control" required 
+                               placeholder="MBBS, MD, PhD">
+                    </div>
+                    <div class="form-group">
+                        <label for="hospital">Hospital/Affiliation</label>
+                        <input type="text" id="hospital" name="hospital" class="form-control" 
+                               placeholder="City General Hospital">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Practice Information -->
+            <div class="form-section" style="border: none; margin-bottom: 0;">
+                <div class="section-title">
+                    <i class="fas fa-stethoscope"></i>
+                    Practice Information
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="consultation_fee">Consultation Fee ($)</label>
+                        <input type="number" id="consultation_fee" name="consultation_fee" class="form-control" 
+                               min="0" step="0.01" placeholder="150.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="availability">Availability</label>
+                        <select id="availability" name="availability" class="form-control">
+                            <option value="weekdays">Weekdays Only</option>
+                            <option value="weekends">Weekends Only</option>
+                            <option value="both">Weekdays & Weekends</option>
+                            <option value="flexible">Flexible Schedule</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-grid full">
+                    <div class="form-group">
+                        <label for="bio">Professional Bio</label>
+                        <textarea id="bio" name="bio" class="form-control" rows="4" 
+                                  placeholder="Brief description of expertise, specializations, and professional background..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{{ url_for('admin_doctors') }}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Add Doctor
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('doctorForm');
+    const progressFill = document.getElementById('progressFill');
+    const requiredFields = form.querySelectorAll('[required]');
+    const totalFields = requiredFields.length;
+    
+    // Update progress bar
+    function updateProgress() {
+        let filledFields = 0;
+        requiredFields.forEach(field => {
+            if (field.value.trim() !== '') {
+                filledFields++;
+            }
+        });
+        const progress = (filledFields / totalFields) * 100;
+        progressFill.style.width = progress + '%';
+    }
+    
+    // Add event listeners to all form fields
+    form.querySelectorAll('input, select, textarea').forEach(field => {
+        field.addEventListener('input', updateProgress);
+        field.addEventListener('change', updateProgress);
+        
+        // Add validation feedback
+        field.addEventListener('blur', function() {
+            if (this.hasAttribute('required') && this.value.trim() === '') {
+                this.classList.add('error');
+                this.classList.remove('success');
+            } else if (this.value.trim() !== '') {
+                this.classList.add('success');
+                this.classList.remove('error');
+            }
+        });
+        
+        field.addEventListener('input', function() {
+            if (this.classList.contains('error') && this.value.trim() !== '') {
+                this.classList.remove('error');
+                this.classList.add('success');
+            }
+        });
+    });
+    
+    // Form submission with validation
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        requiredFields.forEach(field => {
+            if (field.value.trim() === '') {
+                field.classList.add('error');
+                isValid = false;
+            }
+        });
+        
+        // Password confirmation validation
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirm_password');
+        
+        if (password.value !== confirmPassword.value) {
+            confirmPassword.classList.add('error');
+            isValid = false;
+            alert('Passwords do not match.');
+        }
+        
+        if (password.value.length < 6) {
+            password.classList.add('error');
+            isValid = false;
+            alert('Password must be at least 6 characters long.');
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields correctly.');
+        }
+    });
+    
+    // Initialize progress
+    updateProgress();
+    
+    // Add smooth animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+    
+    // Observe form sections
+    document.querySelectorAll('.form-section').forEach(section => {
+        observer.observe(section);
+    });
+});
+</script>
+
+{% endblock %}

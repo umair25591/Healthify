@@ -1,0 +1,952 @@
+{% extends "Doctor/layout.html" %}
+
+{% block title %}Patient Profile - {{ patient.name }} - Healthify{% endblock %}
+
+{% block content %}
+<div class="patient-profile-wrapper">
+    <style>
+        /* Patient Profile Specific Styles - Matching Dashboard Theme */
+        .patient-profile-wrapper {
+            width: 100%;
+            min-height: 100vh;
+            background: var(--bg-color);
+        }
+
+        .patient-profile-container {
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Page Header - Matching Dashboard */
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .page-header h2 {
+            margin: 0 0 0.5rem 0;
+            color: white;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.8);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Back Button */
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Patient Info Section */
+        .patient-info-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+        }
+
+        .patient-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+        }
+
+        .patient-basic-info h1 {
+            margin: 0 0 1rem 0;
+            color: var(--text-color);
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .patient-contact {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            color: var(--text-light);
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .patient-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-color);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .action-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .action-btn.primary {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-item {
+            background: var(--background-color);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Widgets */
+        .widget {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .widget:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .widget-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .widget-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Appointments List */
+        .appointment-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .appointment-item:last-child {
+            border-bottom: none;
+        }
+
+        .appointment-item:hover {
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 8px;
+        }
+
+        .appointment-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .appointment-content h4 {
+            margin: 0;
+            font-size: 0.95rem;
+            color: var(--text-color);
+        }
+
+        .appointment-content p {
+            margin: 0.25rem 0 0 0;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .appointment-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: auto;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-confirmed {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .status-active {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .status-completed {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-cancelled {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* Medical History */
+        .history-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-item:hover {
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 8px;
+        }
+
+        .history-date {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .history-content h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--text-color);
+            font-size: 0.95rem;
+        }
+
+        .history-content p {
+            margin: 0;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .quick-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--background-color);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        .quick-action-btn:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .quick-action-btn i {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .patient-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .patient-actions {
+                flex-wrap: wrap;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+
+    <div class="patient-profile-container">
+        <!-- Back Button -->
+        <a href="{{ url_for('doctor_patients') }}" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Back to Patients
+        </a>
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <h2><i class="fas fa-user"></i> {{ patient.name }}</h2>
+            <p>Patient Profile - View medical history, appointments, and manage patient information.</p>
+        </div>
+
+        <!-- Patient Info Section -->
+        <div class="patient-info-section">
+            <div class="patient-header">
+                <div class="patient-basic-info">
+                    <h1>{{ patient.name }}</h1>
+                    <div class="patient-contact">
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>{{ patient.email }}</span>
+                        </div>
+                        {% if patient.phone %}
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <span>{{ patient.phone }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="patient-actions">
+                    <a href="#" class="action-btn" onclick="sendMessage('{{ patient.email }}')">
+                        <i class="fas fa-comment"></i> Message
+                    </a>
+                    <a href="#" class="action-btn primary" onclick="addHistoryEntry()">
+                        <i class="fas fa-plus"></i> Add History
+                    </a>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">{{ patient.total_appointments }}</div>
+                    <div class="stat-label">Total Appointments</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ patient.specialties|length }}</div>
+                    <div class="stat-label">Specialties</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ (patient.last_appointment - patient.first_appointment).days if patient.last_appointment != patient.first_appointment else 0 }}</div>
+                    <div class="stat-label">Days Since First</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ upcoming_appointments|length }}</div>
+                    <div class="stat-label">Upcoming</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Grid -->
+        <div class="content-grid">
+            <div class="main-content">
+                <!-- Appointments History -->
+                <div class="widget fade-in">
+                    <div class="widget-header">
+                        <div class="widget-title">
+                            <i class="fas fa-calendar-alt"></i>
+                            Appointment History
+                        </div>
+                    </div>
+                    {% if appointments %}
+                        {% for appointment in appointments %}
+                        <div class="appointment-item">
+                            <div class="appointment-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="appointment-content">
+                                <h4>{{ appointment.start_at.strftime('%B %d, %Y at %I:%M %p') }}</h4>
+                                <p>
+                                    <i class="fas fa-stethoscope"></i> {{ specialties[appointment.specialty].name if appointment.specialty in specialties else appointment.specialty|title }} |
+                                    <span class="status-badge status-{{ appointment.status }}">{{ appointment.status|title }}</span>
+                                </p>
+                                {% if appointment.notes %}
+                                <p style="margin-top: 0.5rem; font-style: italic;">{{ appointment.notes }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="appointment-actions">
+                                <a href="{{ url_for('doctor_appointment_detail', appointment_id=appointment._id) }}" 
+                                   class="action-btn">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div style="text-align: center; padding: 2rem; color: var(--text-light);">
+                            <i class="fas fa-calendar-times" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                            <p>No appointments found for this patient.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Medical History -->
+                <div class="widget fade-in">
+                    <div class="widget-header">
+                        <div class="widget-title">
+                            <i class="fas fa-notes-medical"></i>
+                            Medical History
+                        </div>
+                        <button class="action-btn" onclick="loadMedicalHistory()">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="medicalHistoryContent">
+                        <div style="text-align: center; padding: 2rem; color: var(--text-light);">
+                            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                            <p>Loading medical history...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <!-- Upcoming Appointments -->
+                {% if upcoming_appointments %}
+                <div class="widget fade-in">
+                    <div class="widget-header">
+                        <div class="widget-title">
+                            <i class="fas fa-clock"></i>
+                            Upcoming Appointments
+                        </div>
+                    </div>
+                    {% for appointment in upcoming_appointments %}
+                    <div class="appointment-item">
+                        <div class="appointment-icon">
+                            <i class="fas fa-calendar"></i>
+                        </div>
+                        <div class="appointment-content">
+                            <h4>{{ appointment.start_at.strftime('%B %d') }}</h4>
+                            <p>{{ appointment.start_at.strftime('%I:%M %p') }} - {{ appointment.end_at.strftime('%I:%M %p') }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Quick Actions -->
+                <div class="widget fade-in">
+                    <div class="widget-header">
+                        <div class="widget-title">
+                            <i class="fas fa-bolt"></i>
+                            Quick Actions
+                        </div>
+                    </div>
+                    <div class="quick-actions">
+                        <a href="#" class="quick-action-btn" onclick="scheduleFollowUp()">
+                            <i class="fas fa-calendar-plus"></i>
+                            <div>
+                                <strong>Schedule Follow-up</strong>
+                                <small>Book next appointment</small>
+                            </div>
+                        </a>
+                        <a href="#" class="quick-action-btn" onclick="sendMessage('{{ patient.email }}')">
+                            <i class="fas fa-comment"></i>
+                            <div>
+                                <strong>Send Message</strong>
+                                <small>Contact patient</small>
+                            </div>
+                        </a>
+                        <a href="#" class="quick-action-btn" onclick="addHistoryEntry()">
+                            <i class="fas fa-plus"></i>
+                            <div>
+                                <strong>Add History</strong>
+                                <small>Update medical records</small>
+                            </div>
+                        </a>
+                        <a href="#" class="quick-action-btn" onclick="generateReport()">
+                            <i class="fas fa-file-medical"></i>
+                            <div>
+                                <strong>Generate Report</strong>
+                                <small>Create patient summary</small>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Patient Summary -->
+                <div class="widget fade-in">
+                    <div class="widget-header">
+                        <div class="widget-title">
+                            <i class="fas fa-info-circle"></i>
+                            Patient Summary
+                        </div>
+                    </div>
+                    <div style="color: var(--text-light); font-size: 0.9rem; line-height: 1.5;">
+                        <p><strong>First Visit:</strong> {{ patient.first_appointment.strftime('%B %d, %Y') }}</p>
+                        <p><strong>Last Visit:</strong> {{ patient.last_appointment.strftime('%B %d, %Y') }}</p>
+                        <p><strong>Specialties:</strong></p>
+                        <div style="margin-top: 0.5rem;">
+                            {% for specialty in patient.specialties %}
+                            <span class="status-badge status-confirmed" style="margin-right: 0.5rem; margin-bottom: 0.5rem; display: inline-block;">
+                                {{ specialties[specialty].name if specialty in specialties else specialty|title }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Medical History Modal -->
+<div id="historyModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add Medical History Entry</h3>
+            <span class="close" onclick="closeHistoryModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="historyForm">
+                <div class="form-group">
+                    <label>Condition/Condition</label>
+                    <input type="text" name="condition" placeholder="e.g., Hypertension, Diabetes" required>
+                </div>
+                <div class="form-group">
+                    <label>Symptoms</label>
+                    <textarea name="symptoms" placeholder="Describe symptoms..." rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Diagnosis</label>
+                    <textarea name="diagnosis" placeholder="Medical diagnosis..." rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Treatment</label>
+                    <textarea name="treatment" placeholder="Treatment plan..." rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Medications</label>
+                    <input type="text" name="medications" placeholder="e.g., Aspirin 100mg, Metformin 500mg">
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea name="notes" placeholder="Additional notes..." rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Follow-up Date</label>
+                    <input type="date" name="follow_up_date">
+                </div>
+                <div class="form-actions">
+                    <button type="button" onclick="closeHistoryModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Entry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Modal Styles */
+    .modal {
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+        background: var(--card-bg);
+        margin: 5% auto;
+        padding: 0;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--border-color);
+    }
+
+    .modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        color: var(--text-color);
+    }
+
+    .close {
+        color: var(--text-light);
+        font-size: 1.5rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+
+    .close:hover {
+        color: var(--text-color);
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-color);
+        font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--background-color);
+        color: var(--text-color);
+        font-size: 0.9rem;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-secondary {
+        background: var(--background-color);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+        background: var(--border-color);
+    }
+</style>
+
+<script>
+    // Load medical history on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadMedicalHistory();
+    });
+
+    // Load medical history
+    function loadMedicalHistory() {
+        const content = document.getElementById('medicalHistoryContent');
+        content.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-light);"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i><p>Loading medical history...</p></div>';
+
+        fetch(`{{ url_for('doctor_patient_history', patient_email=patient.email) }}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.history.length > 0) {
+                        let html = '';
+                        data.history.forEach(entry => {
+                            html += `
+                                <div class="history-item">
+                                    <div class="history-date">${new Date(entry.date).toLocaleDateString('en-US', { 
+                                        year: 'numeric', 
+                                        month: 'long', 
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })}</div>
+                                    <div class="history-content">
+                                        <h4>${entry.condition || 'General Checkup'}</h4>
+                                        ${entry.diagnosis ? `<p><strong>Diagnosis:</strong> ${entry.diagnosis}</p>` : ''}
+                                        ${entry.treatment ? `<p><strong>Treatment:</strong> ${entry.treatment}</p>` : ''}
+                                        ${entry.medications && entry.medications.length > 0 ? `<p><strong>Medications:</strong> ${entry.medications.join(', ')}</p>` : ''}
+                                        ${entry.notes ? `<p><strong>Notes:</strong> ${entry.notes}</p>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        content.innerHTML = html;
+                    } else {
+                        content.innerHTML = `
+                            <div style="text-align: center; padding: 2rem; color: var(--text-light);">
+                                <i class="fas fa-notes-medical" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                                <p>No medical history entries found.</p>
+                                <button onclick="addHistoryEntry()" class="action-btn primary" style="margin-top: 1rem;">
+                                    <i class="fas fa-plus"></i> Add First Entry
+                                </button>
+                            </div>
+                        `;
+                    }
+                } else {
+                    content.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-light);"><p>Error loading medical history.</p></div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                content.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-light);"><p>Error loading medical history.</p></div>';
+            });
+    }
+
+    // Add history entry
+    function addHistoryEntry() {
+        document.getElementById('historyModal').style.display = 'block';
+    }
+
+    // Close history modal
+    function closeHistoryModal() {
+        document.getElementById('historyModal').style.display = 'none';
+    }
+
+    // Handle history form submission
+    document.getElementById('historyForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const data = {
+            condition: formData.get('condition'),
+            symptoms: formData.get('symptoms'),
+            diagnosis: formData.get('diagnosis'),
+            treatment: formData.get('treatment'),
+            medications: formData.get('medications').split(',').map(m => m.trim()).filter(m => m),
+            notes: formData.get('notes'),
+            follow_up_date: formData.get('follow_up_date')
+        };
+
+        fetch(`{{ url_for('doctor_patient_history', patient_email=patient.email) }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                closeHistoryModal();
+                loadMedicalHistory();
+                // Reset form
+                document.getElementById('historyForm').reset();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error saving medical history entry.');
+        });
+    });
+
+    // Placeholder functions
+    function sendMessage(patientEmail) {
+        alert('Messaging system coming soon!');
+    }
+
+    function scheduleFollowUp() {
+        alert('Follow-up scheduling coming soon!');
+    }
+
+    function generateReport() {
+        alert('Report generation coming soon!');
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('historyModal');
+        if (event.target == modal) {
+            closeHistoryModal();
+        }
+    }
+
+    // Add smooth animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function (entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Observe all widgets
+    document.querySelectorAll('.widget').forEach(element => {
+        observer.observe(element);
+    });
+</script>
+{% endblock %}

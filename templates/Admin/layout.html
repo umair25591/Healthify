@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Portal - Healthify{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+</head>
+<body>
+    <nav class="sidebar">
+        <h1 class="logo"><i class="fas fa-user-shield"></i>Admin</h1>
+        <div class="nav-menu">
+            <a href="{{ url_for('admin_dashboard') }}" class="{{ 'active' if request.endpoint == 'admin_dashboard' else '' }}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <a href="{{ url_for('admin_doctors') }}" class="{{ 'active' if request.endpoint.startswith('admin_doctors') else '' }}">
+                <i class="fas fa-user-md"></i> Doctors
+            </a>
+            <a href="{{ url_for('admin_specialties') }}" class="{{ 'active' if request.endpoint.startswith('admin_specialties') else '' }}">
+                <i class="fas fa-stethoscope"></i> Specialties
+            </a>
+        </div>
+        <div class="logout">
+            <a href="{{ url_for('admin_logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
+
+

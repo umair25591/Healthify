@@ -36,7 +36,7 @@
                 <i class="fas fa-heartbeat text-4xl text-red-500 mb-4"></i>
                 <h2 class="text-xl font-semibold mb-2">Cardiologist</h2>
                 <p class="text-gray-600 mb-4">For heart-related issues.</p>
-                <a href="{{ url_for('heart_doctor') }}" class="text-blue-500 hover:underline">Learn More</a>
+                <a href="{{ url_for('book_appointment', specialty='heart') }}" class="text-blue-500 hover:underline">Book Now</a>
             </div>
 
             <!-- Eye Specialist -->
@@ -44,7 +44,7 @@
                 <i class="fas fa-eye text-4xl text-blue-500 mb-4"></i>
                 <h2 class="text-xl font-semibold mb-2">Ophthalmologist</h2>
                 <p class="text-gray-600 mb-4">For eye-related issues.</p>
-                <a href="{{ url_for('eye_doctor') }}" class="text-blue-500 hover:underline">Learn More</a>
+                <a href="{{ url_for('book_appointment', specialty='eye') }}" class="text-blue-500 hover:underline">Book Now</a>
             </div>
 
             <!-- Kidney Specialist -->
@@ -52,7 +52,7 @@
                 <i class="fas fa-kidneys text-4xl text-green-500 mb-4"></i>
                 <h2 class="text-xl font-semibold mb-2">Nephrologist</h2>
                 <p class="text-gray-600 mb-4">For kidney-related issues.</p>
-                <a href="{{ url_for('kidney_doctor') }}" class="text-blue-500 hover:underline">Learn More</a>
+                <a href="{{ url_for('book_appointment', specialty='kidney') }}" class="text-blue-500 hover:underline">Book Now</a>
             </div>
 
             <!-- Chest Specialist -->
@@ -60,7 +60,7 @@
                 <i class="fas fa-lungs text-4xl text-purple-500 mb-4"></i>
                 <h2 class="text-xl font-semibold mb-2">Pulmonologist</h2>
                 <p class="text-gray-600 mb-4">For chest and lung-related issues.</p>
-                <a href="{{ url_for('chest_doctor') }}" class="text-blue-500 hover:underline">Learn More</a>
+                <a href="{{ url_for('book_appointment', specialty='chest') }}" class="text-blue-500 hover:underline">Book Now</a>
             </div>
         </div>
     </div>

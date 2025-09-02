@@ -1,0 +1,494 @@
+{% extends "Admin/layout.html" %}
+
+{% block title %}Edit Doctor - Healthify{% endblock %}
+
+{% block content %}
+<style>
+    /* Edit Doctor Page Styles */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    .header-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .back-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .back-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+    }
+    
+    /* Form Container */
+    .form-container {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        border: 1px solid var(--border-color);
+        margin-bottom: 2rem;
+    }
+    .form-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .form-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+    }
+    .form-title h1 {
+        margin: 0 0 0.5rem 0;
+        color: var(--text-color);
+        font-size: 1.8rem;
+    }
+    .form-title p {
+        margin: 0;
+        color: var(--text-light);
+    }
+    
+    /* Form Grid */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    .form-section {
+        background: var(--background-color);
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid var(--border-color);
+    }
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    /* Form Groups */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--text-color);
+        font-size: 0.9rem;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background: var(--card-bg);
+        color: var(--text-color);
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    .form-group textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+    .form-group .required {
+        color: #ef4444;
+        margin-left: 0.25rem;
+    }
+    .form-group .help-text {
+        font-size: 0.8rem;
+        color: var(--text-light);
+        margin-top: 0.25rem;
+    }
+    
+    /* Full Width Section */
+    .full-width-section {
+        background: var(--background-color);
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid var(--border-color);
+        margin-bottom: 2rem;
+    }
+    
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border-color);
+    }
+    .btn {
+        padding: 0.75rem 2rem;
+        border-radius: 10px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+        border: 1px solid var(--primary-color);
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    .btn-secondary {
+        background: transparent;
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+    }
+    .btn-secondary:hover {
+        background: var(--background-color);
+        transform: translateY(-2px);
+    }
+    .btn-danger {
+        background: transparent;
+        color: #ef4444;
+        border: 1px solid #ef4444;
+    }
+    .btn-danger:hover {
+        background: #ef4444;
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    /* Status Toggle */
+    .status-toggle {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+    .status-switch {
+        position: relative;
+        width: 60px;
+        height: 30px;
+        background: var(--border-color);
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .status-switch.active {
+        background: #10b981;
+    }
+    .status-switch::before {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 24px;
+        height: 24px;
+        background: white;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+    }
+    .status-switch.active::before {
+        transform: translateX(30px);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        .form-actions {
+            flex-direction: column;
+        }
+        .form-header {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+</style>
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-content">
+            <div>
+                <h1>Edit Doctor</h1>
+                <p>Update doctor information and settings</p>
+            </div>
+            <a href="{{ url_for('admin_doctor_details', doctor_id=doctor._id) }}" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+                Back to Details
+            </a>
+        </div>
+    </div>
+
+    <!-- Edit Form -->
+    <form method="POST" class="form-container">
+        <div class="form-header">
+            <div class="form-icon">
+                <i class="fas fa-user-md"></i>
+            </div>
+            <div class="form-title">
+                <h1>Edit Doctor Information</h1>
+                <p>Update the doctor's personal and professional details</p>
+            </div>
+        </div>
+
+        <!-- Personal Information -->
+        <div class="form-grid">
+            <div class="form-section">
+                <div class="section-title">
+                    <i class="fas fa-user"></i>
+                    Personal Information
+                </div>
+                
+                <div class="form-group">
+                    <label for="full_name">Full Name <span class="required">*</span></label>
+                    <input type="text" id="full_name" name="full_name" value="{{ doctor.full_name }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address <span class="required">*</span></label>
+                    <input type="email" id="email" name="email" value="{{ doctor.email }}" required>
+                    <div class="help-text">This will be used for login and notifications</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone Number <span class="required">*</span></label>
+                    <input type="tel" id="phone" name="phone" value="{{ doctor.phone }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <div class="status-toggle">
+                        <div class="status-switch {{ 'active' if doctor.status == 'active' else '' }}" id="statusSwitch">
+                            <input type="checkbox" id="statusToggle" name="status" value="active" {{ 'checked' if doctor.status == 'active' else '' }} style="display: none;">
+                        </div>
+                        <span id="statusText">{{ doctor.status|capitalize }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Professional Information -->
+            <div class="form-section">
+                <div class="section-title">
+                    <i class="fas fa-graduation-cap"></i>
+                    Professional Information
+                </div>
+                
+                <div class="form-group">
+                    <label for="specialty">Specialty <span class="required">*</span></label>
+                    <select id="specialty" name="specialty" required>
+                        {% for key, specialty in specialties.items() %}
+                        <option value="{{ key }}" {{ 'selected' if doctor.specialty == key else '' }}>
+                            {{ specialty.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="license_number">License Number <span class="required">*</span></label>
+                    <input type="text" id="license_number" name="license_number" value="{{ doctor.license_number }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="experience_years">Years of Experience <span class="required">*</span></label>
+                    <input type="number" id="experience_years" name="experience_years" value="{{ doctor.experience_years }}" min="0" max="50" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="qualification">Qualification <span class="required">*</span></label>
+                    <input type="text" id="qualification" name="qualification" value="{{ doctor.qualification }}" required>
+                    <div class="help-text">e.g., MD, MBBS, PhD, etc.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Information -->
+        <div class="form-grid">
+            <div class="form-section">
+                <div class="section-title">
+                    <i class="fas fa-hospital"></i>
+                    Hospital & Fees
+                </div>
+                
+                <div class="form-group">
+                    <label for="hospital">Hospital/Clinic</label>
+                    <input type="text" id="hospital" name="hospital" value="{{ doctor.hospital or '' }}">
+                    <div class="help-text">Optional: Hospital or clinic where the doctor practices</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="consultation_fee">Consultation Fee ($)</label>
+                    <input type="number" id="consultation_fee" name="consultation_fee" value="{{ doctor.consultation_fee }}" min="0" step="0.01">
+                    <div class="help-text">Set to 0 if not applicable</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="availability">Availability</label>
+                    <select id="availability" name="availability">
+                        <option value="weekdays" {{ 'selected' if doctor.availability == 'weekdays' else '' }}>Weekdays Only</option>
+                        <option value="weekends" {{ 'selected' if doctor.availability == 'weekends' else '' }}>Weekends Only</option>
+                        <option value="both" {{ 'selected' if doctor.availability == 'both' else '' }}>Weekdays & Weekends</option>
+                        <option value="flexible" {{ 'selected' if doctor.availability == 'flexible' else '' }}>Flexible Schedule</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="section-title">
+                    <i class="fas fa-file-alt"></i>
+                    Bio & Notes
+                </div>
+                
+                <div class="form-group">
+                    <label for="bio">Professional Bio</label>
+                    <textarea id="bio" name="bio" placeholder="Enter doctor's professional bio, expertise, and background...">{{ doctor.bio or '' }}</textarea>
+                    <div class="help-text">This will be displayed to patients when booking appointments</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <a href="{{ url_for('admin_doctor_details', doctor_id=doctor._id) }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i>
+                Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i>
+                Update Doctor
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Status Toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const statusSwitch = document.getElementById('statusSwitch');
+    const statusToggle = document.getElementById('statusToggle');
+    const statusText = document.getElementById('statusText');
+    
+    statusSwitch.addEventListener('click', function() {
+        const newStatus = statusToggle.checked ? 'inactive' : 'active';
+        updateStatus(!statusToggle.checked);
+    });
+    
+    function updateStatus(isActive) {
+        statusToggle.checked = isActive;
+        statusSwitch.classList.toggle('active', isActive);
+        statusText.textContent = isActive ? 'Active' : 'Inactive';
+    }
+});
+
+// Form Validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const requiredFields = ['full_name', 'email', 'phone', 'specialty', 'license_number', 'experience_years', 'qualification'];
+    let isValid = true;
+    
+    requiredFields.forEach(fieldName => {
+        const field = document.getElementById(fieldName);
+        if (!field.value.trim()) {
+            field.style.borderColor = '#ef4444';
+            isValid = false;
+        } else {
+            field.style.borderColor = '';
+        }
+    });
+    
+    if (!isValid) {
+        e.preventDefault();
+        alert('Please fill in all required fields marked with *');
+    }
+});
+
+// Email Validation
+document.getElementById('email').addEventListener('blur', function() {
+    const email = this.value;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (email && !emailRegex.test(email)) {
+        this.style.borderColor = '#ef4444';
+        this.setCustomValidity('Please enter a valid email address');
+    } else {
+        this.style.borderColor = '';
+        this.setCustomValidity('');
+    }
+});
+
+// Phone Validation
+document.getElementById('phone').addEventListener('blur', function() {
+    const phone = this.value.replace(/\s/g, '').replace(/-/g, '').replace(/\+/g, '');
+    
+    if (phone && (phone.length < 10 || !/^\d+$/.test(phone))) {
+        this.style.borderColor = '#ef4444';
+        this.setCustomValidity('Please enter a valid phone number');
+    } else {
+        this.style.borderColor = '';
+        this.setCustomValidity('');
+    }
+});
+</script>
+{% endblock %}

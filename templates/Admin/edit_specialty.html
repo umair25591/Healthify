@@ -1,0 +1,445 @@
+{% extends "Admin/layout.html" %}
+
+{% block title %}Edit Specialty - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="page-header">
+        <div class="header-content">
+            <h1><i class="fas fa-edit"></i> Edit Specialty</h1>
+            <p>Update specialty information and settings</p>
+        </div>
+        <div class="header-actions">
+            <a href="{{ url_for('admin_specialties') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Specialties
+            </a>
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="content-card">
+        <form method="POST" class="specialty-form">
+            <div class="form-sections">
+                <!-- Basic Information -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-info-circle"></i>
+                        Basic Information
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="key">Specialty Key</label>
+                            <input type="text" id="key" name="key" class="form-control" 
+                                   placeholder="e.g., heart, kidney, eye" 
+                                   value="{{ specialty.key }}" readonly>
+                            <div class="help-text">Unique identifier (cannot be changed)</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="name">Specialty Name</label>
+                            <input type="text" id="name" name="name" class="form-control" 
+                                   placeholder="e.g., Cardiologist" 
+                                   value="{{ specialty.name }}" required>
+                            <div class="help-text">Display name for the specialty</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" class="form-control" 
+                                  rows="3" placeholder="Brief description of the specialty">{{ specialty.description or '' }}</textarea>
+                        <div class="help-text">Detailed description of what this specialty covers</div>
+                    </div>
+                </div>
+
+                <!-- Visual Settings -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-palette"></i>
+                        Visual Settings
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="icon">Icon</label>
+                            <div class="icon-selector">
+                                <input type="text" id="icon" name="icon" class="form-control" 
+                                       placeholder="fas fa-stethoscope" 
+                                       value="{{ specialty.icon or 'fas fa-stethoscope' }}" required>
+                                <div class="icon-preview">
+                                    <i id="icon-preview" class="{{ specialty.icon or 'fas fa-stethoscope' }}"></i>
+                                </div>
+                            </div>
+                            <div class="help-text">FontAwesome icon class</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="color">Color</label>
+                            <div class="color-selector">
+                                <input type="color" id="color" name="color" class="form-control" 
+                                       value="{{ specialty.color or '#3b82f6' }}">
+                                <input type="text" id="color-text" class="form-control" 
+                                       placeholder="#3b82f6" 
+                                       value="{{ specialty.color or '#3b82f6' }}">
+                            </div>
+                            <div class="help-text">Primary color for this specialty</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Settings -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <i class="fas fa-toggle-on"></i>
+                        Status Settings
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="is_active" name="is_active" 
+                                   {% if specialty.is_active %}checked{% endif %}>
+                            <span class="checkmark"></span>
+                            Active Specialty
+                        </label>
+                        <div class="help-text">Inactive specialties won't appear in booking options</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Update Specialty
+                </button>
+                <a href="{{ url_for('admin_specialties') }}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.admin-container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header-content h1 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+.header-content h1 i {
+    margin-right: 0.5rem;
+    color: var(--primary-color);
+}
+
+.header-content p {
+    margin: 0.5rem 0 0 0;
+    color: var(--text-secondary);
+}
+
+.header-actions .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.flash-messages {
+    margin-bottom: 2rem;
+}
+
+.content-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.specialty-form {
+    padding: 2rem;
+}
+
+.form-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.form-section {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.section-title i {
+    margin-right: 0.5rem;
+    color: var(--primary-color);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-control[readonly] {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+}
+
+.help-text {
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.icon-selector {
+    position: relative;
+}
+
+.icon-preview {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}
+
+.color-selector {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.color-selector input[type="color"] {
+    width: 60px;
+    height: 40px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.color-selector input[type="text"] {
+    flex: 1;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.checkbox-label input[type="checkbox"] {
+    display: none;
+}
+
+.checkmark {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    margin-right: 0.75rem;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-start;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: var(--secondary-color);
+    color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+    background: var(--secondary-dark);
+    transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+    .admin-container {
+        padding: 1rem;
+    }
+    
+    .page-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .color-selector {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .color-selector input[type="color"] {
+        width: 100%;
+        height: 50px;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Icon preview update
+    const iconInput = document.getElementById('icon');
+    const iconPreview = document.getElementById('icon-preview');
+    
+    iconInput.addEventListener('input', function() {
+        iconPreview.className = this.value;
+    });
+    
+    // Color picker sync
+    const colorInput = document.getElementById('color');
+    const colorText = document.getElementById('color-text');
+    
+    colorInput.addEventListener('input', function() {
+        colorText.value = this.value;
+    });
+    
+    colorText.addEventListener('input', function() {
+        if (this.value.match(/^#[0-9A-F]{6}$/i)) {
+            colorInput.value = this.value;
+        }
+    });
+    
+    // Form validation
+    const form = document.querySelector('.specialty-form');
+    form.addEventListener('submit', function(e) {
+        const name = document.getElementById('name').value.trim();
+        const icon = document.getElementById('icon').value.trim();
+        
+        if (!name) {
+            e.preventDefault();
+            alert('Please enter a specialty name');
+            return;
+        }
+        
+        if (!icon) {
+            e.preventDefault();
+            alert('Please enter an icon class');
+            return;
+        }
+    });
+});
+</script>
+{% endblock %} 

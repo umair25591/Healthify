@@ -1,0 +1,323 @@
+{% extends "Admin/layout.html" %}
+
+{% block title %}Add Specialty - Healthify{% endblock %}
+
+{% block content %}
+<style>
+    .page-header { 
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    .header-content { position: relative; z-index: 1; }
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .form-card {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        border: 1px solid var(--border-color);
+        animation: slideUp 0.6s ease-out;
+    }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .form-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-top: 20px;
+    }
+    .form-grid.full {
+        grid-template-columns: 1fr;
+    }
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .form-group label {
+        font-weight: 500;
+        color: var(--text-color);
+        font-size: 0.95rem;
+        margin-left: 5px;
+    }
+    .form-group label.required::after {
+        content: ' *';
+        color: #ef4444;
+    }
+    .form-control {
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        background: var(--background-color);
+        color: var(--text-color);
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    .form-control.error {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+    .help-text {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-top: 0.25rem;
+    }
+    .help-text.error {
+        color: #ef4444;
+    }
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border-color);
+    }
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+    }
+    .btn-primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+    }
+    .btn-secondary {
+        background: var(--secondary-color);
+        color: white;
+    }
+    .btn-secondary:hover {
+        background: var(--secondary-dark);
+        transform: translateY(-1px);
+    }
+    .icon-preview {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1rem;
+        padding: 1rem;
+        background: var(--background-color);
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+    }
+    .icon-preview i {
+        font-size: 2rem;
+        color: var(--primary-color);
+    }
+    .color-preview {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        border: 2px solid var(--border-color);
+    }
+    .preview-section {
+        background: var(--background-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+        border: 1px solid var(--border-color);
+    }
+    .preview-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="page-header">
+    <div class="header-content">
+        <h1><i class="fas fa-plus"></i> Add New Specialty</h1>
+        <p>Create a new medical specialty for the platform</p>
+    </div>
+</div>
+
+<div class="form-container">
+    <form method="POST" class="form-card">
+        <!-- Basic Information -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-info-circle"></i>
+                Basic Information
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="name" class="required">Specialty Name</label>
+                    <input type="text" id="name" name="name" class="form-control" required 
+                           placeholder="e.g., Cardiologist" value="{{ request.form.name or '' }}">
+                    <div class="help-text">The display name for the specialty</div>
+                </div>
+                <div class="form-group">
+                    <label for="key" class="required">Specialty Key</label>
+                    <input type="text" id="key" name="key" class="form-control" required 
+                           placeholder="e.g., heart" value="{{ request.form.key or '' }}">
+                    <div class="help-text">Unique identifier (lowercase, no spaces)</div>
+                </div>
+            </div>
+            <div class="form-grid full">
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" class="form-control" rows="3" 
+                              placeholder="Brief description of what this specialty covers...">{{ request.form.description or '' }}</textarea>
+                    <div class="help-text">Optional description for the specialty</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visual Settings -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-palette"></i>
+                Visual Settings
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="icon">Icon</label>
+                    <select id="icon" name="icon" class="form-control">
+                        <option value="fas fa-stethoscope" {% if request.form.icon == 'fas fa-stethoscope' %}selected{% endif %}>Stethoscope</option>
+                        <option value="fas fa-heart" {% if request.form.icon == 'fas fa-heart' %}selected{% endif %}>Heart</option>
+                        <option value="fas fa-eye" {% if request.form.icon == 'fas fa-eye' %}selected{% endif %}>Eye</option>
+                        <option value="fas fa-lungs" {% if request.form.icon == 'fas fa-lungs' %}selected{% endif %}>Lungs</option>
+                        <option value="fas fa-brain" {% if request.form.icon == 'fas fa-brain' %}selected{% endif %}>Brain</option>
+                        <option value="fas fa-bone" {% if request.form.icon == 'fas fa-bone' %}selected{% endif %}>Bone</option>
+                        <option value="fas fa-tooth" {% if request.form.icon == 'fas fa-tooth' %}selected{% endif %}>Tooth</option>
+                        <option value="fas fa-baby" {% if request.form.icon == 'fas fa-baby' %}selected{% endif %}>Baby</option>
+                        <option value="fas fa-user-md" {% if request.form.icon == 'fas fa-user-md' %}selected{% endif %}>Doctor</option>
+                        <option value="fas fa-hospital" {% if request.form.icon == 'fas fa-hospital' %}selected{% endif %}>Hospital</option>
+                    </select>
+                    <div class="help-text">Icon to represent this specialty</div>
+                </div>
+                <div class="form-group">
+                    <label for="color">Color</label>
+                    <input type="color" id="color" name="color" class="form-control" 
+                           value="{{ request.form.color or '#3b82f6' }}" style="height: 50px;">
+                    <div class="help-text">Primary color for this specialty</div>
+                </div>
+            </div>
+            
+            <div class="preview-section">
+                <div class="preview-title">Preview</div>
+                <div class="icon-preview">
+                    <i id="iconPreview" class="fas fa-stethoscope"></i>
+                    <div>
+                        <div style="font-weight: 600; color: var(--text-color);" id="namePreview">Specialty Name</div>
+                        <div style="font-size: 0.9rem; color: var(--text-muted);" id="keyPreview">specialty-key</div>
+                    </div>
+                    <div class="color-preview" id="colorPreview"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('admin_specialties') }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Add Specialty
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nameInput = document.getElementById('name');
+    const keyInput = document.getElementById('key');
+    const iconSelect = document.getElementById('icon');
+    const colorInput = document.getElementById('color');
+    
+    const namePreview = document.getElementById('namePreview');
+    const keyPreview = document.getElementById('keyPreview');
+    const iconPreview = document.getElementById('iconPreview');
+    const colorPreview = document.getElementById('colorPreview');
+    
+    function updatePreview() {
+        namePreview.textContent = nameInput.value || 'Specialty Name';
+        keyPreview.textContent = keyInput.value || 'specialty-key';
+        iconPreview.className = iconSelect.value;
+        colorPreview.style.backgroundColor = colorInput.value;
+        iconPreview.style.color = colorInput.value;
+    }
+    
+    nameInput.addEventListener('input', updatePreview);
+    keyInput.addEventListener('input', updatePreview);
+    iconSelect.addEventListener('change', updatePreview);
+    colorInput.addEventListener('input', updatePreview);
+    
+    // Auto-generate key from name
+    nameInput.addEventListener('input', function() {
+        if (!keyInput.value) {
+            const key = nameInput.value.toLowerCase()
+                .replace(/[^a-z0-9]/g, '')
+                .substring(0, 20);
+            keyInput.value = key;
+            updatePreview();
+        }
+    });
+    
+    // Initialize preview
+    updatePreview();
+});
+</script>
+{% endblock %}
