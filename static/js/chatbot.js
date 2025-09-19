@@ -44,10 +44,11 @@ $(document).ready(function () {
 
     // --- Append Message ---
     function appendMessage(text, sender, isError = false) {
+        const formattedHtml = marked.parse(text);
         const $messageWrapper = $('<div>').addClass('flex');
         const $messageBubble = $('<div>')
             .addClass('message-bubble p-3 rounded-lg max-w-xs md:max-w-md shadow')
-            .html(text.replace(/\n/g, '<br>'));
+            .html(formattedHtml);
 
         if (sender === 'user') {
             $messageWrapper.addClass('justify-end user-message');
@@ -112,7 +113,24 @@ $(document).ready(function () {
     // --- Gemini API Call ---
     async function callGeminiAPI(prompt) {
         const apiKey = "AIzaSyBUfST8o0mRQ_vqTd-7JxDjUfpgvcQrlzI";
-        const systemInstruction = "You are a helpful and friendly AI health assistant. Your goal is to provide accurate, safe, and easy-to-understand information about general health topics. Do not provide medical advice or diagnoses. If a user asks for a diagnosis, seems to be in a medical emergency, or asks for urgent help, firmly and clearly advise them to contact emergency services or a qualified healthcare professional immediately. Keep your answers concise and well-formatted.";
+        const systemInstruction = `You are "Healthify", an AI assistant for a disease prediction project. Your only purpose is to answer questions about the Healthify project and its capabilities.
+
+            Healthify uses a trained model to predict four specific conditions from two types of data:
+
+            1.  **Image-Based Predictions:**
+                * **Pneumonia:** Predicted from chest X-ray images.
+                * **Diabetic Retinopathy:** Predicted from retinal eye scan images.
+
+            2.  **Tabular Data Predictions:**
+                * **Heart Disease:** Predicted from tabular health data (e.g., cholesterol levels, blood pressure).
+                * **Kidney Disease:** Predicted from tabular health data (e.g., blood test results).
+
+            **Your Strict Rules:**
+            - **Only discuss the four conditions listed above** (Pneumonia, Diabetic Retinopathy, Heart Disease, Kidney Disease) and how Healthify predicts them.
+            - **Do not discuss any other diseases, treatments, or general health topics.** If asked about something else, state that it is "outside the scope of Healthify's current prediction models."
+            - **You are a tool, not a doctor.** You must not provide medical advice or a diagnosis. Your predictions are for informational purposes only.
+            - If a user asks for a diagnosis or seems to be in an emergency, you must firmly advise them to **consult a qualified healthcare professional immediately.**`;
+
         const chatHistory = [{ role: "user", parts: [{ text: systemInstruction + "\n\nUser Question: " + prompt }] }];
         const payload = { contents: chatHistory };
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
