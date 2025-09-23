@@ -19,6 +19,9 @@
         <div class="nav-menu">
             <a href="{{ url_for('schedule_managment') }}" class="{{ 'active' if request.endpoint == 'schedule_managment' else '' }}"><i class="fas fa-calendar-alt"></i> Schedule</a>
         </div>
+        <div class="nav-menu">
+            <a href="{{ url_for('doctor_appointments') }}" class="{{ 'active' if request.endpoint == 'doctor_appointments' else '' }}"><i class="fas fa-calendar-alt"></i> Appointments</a>
+        </div>
         <div class="logout">
             <a href="{{ url_for('doctor_logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </div>

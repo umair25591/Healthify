@@ -1,0 +1,162 @@
+{% extends "Admin/layout.html" %}
+{% block title %}Appointments - Admin{% endblock %}
+{% block content %}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        color: white;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+    }
+
+    .filter-bar {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .filter-bar input,
+    .filter-bar select {
+        padding: 0.6rem 1rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        font-size: 0.9rem;
+        min-width: 200px;
+    }
+
+    .appointment-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--card-bg);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .appointment-table th,
+    .appointment-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.9rem;
+    }
+
+    .appointment-table th {
+        background: rgba(102, 126, 234, 0.1);
+        text-align: left;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .appointment-table tr:hover {
+        background: rgba(102, 126, 234, 0.05);
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.4rem 0.8rem;
+        border-radius: 9999px;
+        /* pill style */
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: capitalize;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    .status-confirmed {
+        background: linear-gradient(135deg, #93c5fd, #3b82f6);
+        color: white;
+    }
+
+    .status-active {
+        background: linear-gradient(135deg, #6ee7b7, #10b981);
+        color: white;
+    }
+
+    .status-completed {
+        background: linear-gradient(135deg, #d1d5db, #6b7280);
+        color: white;
+    }
+
+    .status-cancelled,
+    .status-no_show {
+        background: linear-gradient(135deg, #fca5a5, #ef4444);
+        color: white;
+    }
+</style>
+
+<div class="page-header">
+    <h1><i class="fas fa-calendar-alt"></i> Manage Appointments</h1>
+    <p>Search, filter, and manage all appointments</p>
+</div>
+
+<div class="filter-bar">
+    <form method="get" style="display:flex; gap:1rem; flex-wrap:wrap;">
+        <input type="text" name="search" placeholder="Search by ID, patient, doctor" value="{{ search }}">
+        <select name="status">
+            <option value="all" {% if status=='all' %}selected{% endif %}>All Statuses</option>
+            <option value="confirmed" {% if status=='confirmed' %}selected{% endif %}>Confirmed</option>
+            <option value="active" {% if status=='active' %}selected{% endif %}>Active</option>
+            <option value="completed" {% if status=='completed' %}selected{% endif %}>Completed</option>
+            <option value="cancelled" {% if status=='cancelled' %}selected{% endif %}>Cancelled</option>
+            <option value="no_show" {% if status=='no_show' %}selected{% endif %}>No-show</option>
+        </select>
+        <button type="submit"
+            style="padding:0.6rem 1rem; border:none; border-radius:8px; background:linear-gradient(135deg, #667eea, #764ba2); color:white; cursor:pointer;">Apply</button>
+    </form>
+</div>
+
+{% if appointments %}
+<table class="appointment-table">
+    <thead>
+        <tr>
+            <th>Appointment ID</th>
+            <th>Patient</th>
+            <th>Doctor</th>
+            <th>Specialty</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for appt in appointments %}
+        <tr>
+            <td>{{ appt._id }}</td>
+            <td>{{ appt.patient_name }}<br><small>{{ appt.patient_email }}</small></td>
+            <td>{{ appt.doctor_name }}<br><small>{{ appt.doctor_email }}</small></td>
+            <td>{{ appt.specialty|capitalize }}</td>
+            <td>{{ appt.start_at.strftime('%b %d, %Y %I:%M %p') }}</td>
+            <td>{{ appt.end_at.strftime('%b %d, %Y %I:%M %p') }}</td>
+            <td>
+                <span class="status-badge status-{{ appt.status|lower }}">
+                    {% if appt.status == "confirmed" %}
+                        <i class="fas fa-clock"></i> Confirmed
+                    {% elif appt.status == "active" %}
+                        <i class="fas fa-video"></i> Active
+                    {% elif appt.status == "completed" %}
+                        <i class="fas fa-check-circle"></i> Completed
+                    {% elif appt.status in ["cancelled", "no_show"] %}
+                        <i class="fas fa-times-circle"></i> Cancelled
+                    {% else %}
+                        <i class="fas fa-question-circle"></i> {{ appt.status }}
+                    {% endif %}
+                </span>
+            </td>
+
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p style="text-align:center; padding:2rem; color:var(--text-light);">No appointments found.</p>
+{% endif %}
+
+{% endblock %}

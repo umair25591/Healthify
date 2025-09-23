@@ -20,6 +20,12 @@
             <a href="{{ url_for('admin_specialties') }}" class="{{ 'active' if request.endpoint.startswith('admin_specialties') else '' }}">
                 <i class="fas fa-stethoscope"></i> Specialties
             </a>
+            <a href="{{ url_for('admin_appointments') }}" class="{{ 'active' if request.endpoint.startswith('admin_appointments') else '' }}">
+                <i class="fas fa-calendar-alt"></i> Appointments
+            </a>
+            <a href="{{ url_for('admin_feedback') }}" class="{{ 'active' if request.endpoint.startswith('admin_feedback') else '' }}">
+                <i class="fas fa-comments"></i> View Feedback
+            </a>
         </div>
         <div class="logout">
             <a href="{{ url_for('admin_logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>

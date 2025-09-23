@@ -1,0 +1,121 @@
+{% extends "Admin/layout.html" %}
+
+{% block title %}Patient Feedback - Admin{% endblock %}
+
+{% block content %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        color: white;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+    }
+
+    .feedback-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .feedback-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        animation: fadeIn .6s ease;
+    }
+
+    .feedback-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 28px rgba(0,0,0,0.2);
+    }
+
+    .feedback-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: .8rem;
+    }
+
+    .feedback-patient {
+        font-weight: 600;
+        font-size: 1rem;
+        color: var(--text-color);
+    }
+
+    .feedback-rating {
+        color: #fbbf24;
+        font-size: 1.2rem;
+    }
+
+    .feedback-meta {
+        font-size: .85rem;
+        color: var(--text-light);
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+
+    .feedback-comment {
+        font-size: .95rem;
+        color: var(--text-color);
+        line-height: 1.5;
+        background: rgba(102,126,234,0.05);
+        border-left: 4px solid #667eea;
+        padding: 0.8rem 1rem;
+        border-radius: 8px;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="page-header">
+    <h1><i class="fas fa-comments"></i> Patient Feedback</h1>
+    <p>See what patients are saying about their appointments</p>
+</div>
+
+{% if feedback %}
+<div class="feedback-list">
+    {% for fb in feedback %}
+    <div class="feedback-card">
+        <div class="feedback-header">
+            <span class="feedback-patient">{{ fb.patient_email }}</span>
+            <span class="feedback-rating">
+                {% for i in range(fb.rating) %}⭐{% endfor %}
+            </span>
+        </div>
+
+        <div class="feedback-meta">
+            <strong>Appointment ID:</strong> {{ fb.appointment._id }} <br>
+            <strong>Doctor:</strong> {{ fb.doctor_email }} <br>
+            <strong>Scheduled:</strong>
+                {{ fb.appointment.start_at.strftime('%b %d, %Y %I:%M %p') }}
+                – {{ fb.appointment.end_at.strftime('%I:%M %p') }} <br>
+            <strong>Started:</strong>
+                {{ fb.appointment.started_at.strftime('%b %d, %Y %I:%M %p') if fb.appointment.started_at else "Not recorded" }} <br>
+            <strong>Finished:</strong>
+                {{ fb.appointment.completed_at.strftime('%b %d, %Y %I:%M %p') if fb.appointment.completed_at else "Not recorded" }} <br>
+            <strong>Feedback Submitted:</strong>
+                {{ fb.created_at.strftime('%b %d, %Y %I:%M %p') }}
+        </div>
+
+        <div class="feedback-comment">
+            {{ fb.comments or "No comments provided." }}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div style="text-align:center; padding:3rem; color:var(--text-light);">
+    <i class="fas fa-comment-slash" style="font-size:4rem; margin-bottom:1rem; opacity:0.5;"></i>
+    <p>No feedback submitted yet.</p>
+</div>
+{% endif %}
+{% endblock %}

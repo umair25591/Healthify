@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Feedback Status - Healthify</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #0d0c22;
+      --card: #1a1936;
+      --success: linear-gradient(135deg, #34d399, #059669);
+      --info: linear-gradient(135deg, #60a5fa, #3b82f6);
+      --error: linear-gradient(135deg, #f87171, #dc2626);
+      --text: #fff;
+      --shadow: 0 8px 30px rgba(0,0,0,0.35);
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .status-card {
+      background: var(--card);
+      padding: 2rem;
+      border-radius: 16px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: var(--shadow);
+      text-align: center;
+      animation: fadeIn .6s ease;
+    }
+
+    .status-card.success {
+      border-top: 5px solid #10b981;
+    }
+    .status-card.info {
+      border-top: 5px solid #3b82f6;
+    }
+    .status-card.error {
+      border-top: 5px solid #ef4444;
+    }
+
+    .status-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    .success .status-icon { color: #10b981; }
+    .info .status-icon { color: #3b82f6; }
+    .error .status-icon { color: #ef4444; }
+
+    h2 {
+      margin-bottom: .5rem;
+      font-size: 1.4rem;
+      color: var(--text);
+    }
+    p {
+      color: #94a3b8;
+      font-size: .95rem;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="status-card {{ type }}">
+    <div class="status-icon">
+      {% if type == "success" %}
+        <i class="fas fa-check-circle"></i>
+      {% elif type == "info" %}
+        <i class="fas fa-info-circle"></i>
+      {% else %}
+        <i class="fas fa-times-circle"></i>
+      {% endif %}
+    </div>
+    <h2>{{ message }}</h2>
+    <p>You can close this page now.</p>
+  </div>
+</body>
+</html>

@@ -40,9 +40,12 @@
         }
 
         @keyframes float {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: translateY(0px);
             }
+
             50% {
                 transform: translateY(-10px);
             }
@@ -420,6 +423,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -439,21 +443,21 @@
             <form method="GET" action="{{ url_for('doctor_patients') }}" class="search-filter-grid">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" name="search" placeholder="Search by name, email, or phone..." 
-                           value="{{ search }}" autocomplete="off">
+                    <input type="text" name="search" placeholder="Search by name, email, or phone..."
+                        value="{{ search }}" autocomplete="off">
                 </div>
                 <select name="status" class="filter-select">
-                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+                    <option value="all" {% if status_filter=='all' %}selected{% endif %}>All Status</option>
                     {% for status in all_statuses %}
-                    <option value="{{ status }}" {% if status_filter == status %}selected{% endif %}>
+                    <option value="{{ status }}" {% if status_filter==status %}selected{% endif %}>
                         {{ status|title }}
                     </option>
                     {% endfor %}
                 </select>
                 <select name="specialty" class="filter-select">
-                    <option value="all" {% if specialty_filter == 'all' %}selected{% endif %}>All Specialties</option>
+                    <option value="all" {% if specialty_filter=='all' %}selected{% endif %}>All Specialties</option>
                     {% for specialty in all_specialties %}
-                    <option value="{{ specialty }}" {% if specialty_filter == specialty %}selected{% endif %}>
+                    <option value="{{ specialty }}" {% if specialty_filter==specialty %}selected{% endif %}>
                         {{ specialties[specialty].name if specialty in specialties else specialty|title }}
                     </option>
                     {% endfor %}
@@ -470,16 +474,19 @@
                 <div class="stat-number">{{ total_patients }}</div>
                 <div class="stat-label">Total Patients</div>
             </div>
+
             <div class="stat-card fade-in">
-                <div class="stat-number">{{ patients|selectattr('statuses', 'contains', 'completed')|list|length }}</div>
+                <div class="stat-number">{{ completed_count }}</div>
                 <div class="stat-label">Completed</div>
             </div>
+
             <div class="stat-card fade-in">
-                <div class="stat-number">{{ patients|selectattr('statuses', 'contains', 'confirmed')|list|length }}</div>
+                <div class="stat-number">{{ confirmed_count }}</div>
                 <div class="stat-label">Confirmed</div>
             </div>
+
             <div class="stat-card fade-in">
-                <div class="stat-number">{{ patients|selectattr('statuses', 'contains', 'active')|list|length }}</div>
+                <div class="stat-number">{{ active_count }}</div>
                 <div class="stat-label">Active</div>
             </div>
         </div>
@@ -487,59 +494,61 @@
         <!-- Patients Grid -->
         <div class="patients-grid">
             {% if patients %}
-                {% for patient in patients %}
-                <div class="patient-card fade-in" onclick="window.location.href='{{ url_for('doctor_patient_profile', patient_email=patient.patient_email) }}'">
-                    <div class="patient-header">
-                        <div class="patient-info">
-                            <h3>{{ patient.patient_name }}</h3>
-                            <div class="patient-contact">
-                                <i class="fas fa-envelope"></i> {{ patient.patient_email }}
-                                {% if patient.patient_phone %}
-                                <br><i class="fas fa-phone"></i> {{ patient.patient_phone }}
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="patient-actions">
-                            <a href="{{ url_for('doctor_patient_profile', patient_email=patient.patient_email) }}" 
-                               class="action-btn primary" onclick="event.stopPropagation()">
-                                <i class="fas fa-user"></i> Profile
-                            </a>
-                            <a href="#" class="action-btn" onclick="event.stopPropagation(); sendMessage('{{ patient.patient_email }}')">
-                                <i class="fas fa-comment"></i> Message
-                            </a>
+            {% for patient in patients %}
+            <div class="patient-card fade-in" onclick="window.location.href='{{ url_for('doctor_patient_profile', patient_email=patient['patient_email']) }}'">
+                <div class="patient-header">
+                    <div class="patient-info">
+                        <h3>{{ patient.patient_name }}</h3>
+                        <div class="patient-contact">
+                            <i class="fas fa-envelope"></i> {{ patient.patient_email }}
+                            {% if patient.patient_phone %}
+                            <br><i class="fas fa-phone"></i> {{ patient.patient_phone }}
+                            {% endif %}
                         </div>
                     </div>
-                    
-                    <div class="patient-stats">
-                        <div class="stat-item">
-                            <div class="stat-item-number">{{ patient.total_appointments }}</div>
-                            <div class="stat-item-label">Appointments</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-item-number">{{ patient.specialties|length }}</div>
-                            <div class="stat-item-label">Specialties</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-item-number">{{ (patient.last_appointment - patient.first_appointment).days if patient.last_appointment != patient.first_appointment else 0 }}</div>
-                            <div class="stat-item-label">Days</div>
-                        </div>
-                    </div>
-                    
-                    <div class="patient-specialties">
-                        {% for specialty in patient.specialties %}
-                        <span class="specialty-tag">
-                            {{ specialties[specialty].name if specialty in specialties else specialty|title }}
-                        </span>
-                        {% endfor %}
+                    <div class="patient-actions">
+                        <a href="{{ url_for('doctor_patient_profile', patient_email=patient.patient_email) }}"
+                            class="action-btn primary" onclick="event.stopPropagation()">
+                            <i class="fas fa-user"></i> Profile
+                        </a>
+                        <a href="#" class="action-btn"
+                            onclick="event.stopPropagation(); sendMessage('{{ patient.patient_email }}')">
+                            <i class="fas fa-comment"></i> Message
+                        </a>
                     </div>
                 </div>
-                {% endfor %}
+
+                <div class="patient-stats">
+                    <div class="stat-item">
+                        <div class="stat-item-number">{{ patient.total_appointments }}</div>
+                        <div class="stat-item-label">Appointments</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-item-number">{{ patient.specialties|length }}</div>
+                        <div class="stat-item-label">Specialties</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-item-number">{{ (patient.last_appointment - patient.first_appointment).days if
+                            patient.last_appointment != patient.first_appointment else 0 }}</div>
+                        <div class="stat-item-label">Days</div>
+                    </div>
+                </div>
+
+                <div class="patient-specialties">
+                    {% for specialty in patient.specialties %}
+                    <span class="specialty-tag">
+                        {{ specialties[specialty].name if specialty in specialties else specialty|title }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
             {% else %}
-                <div class="empty-state">
-                    <i class="fas fa-users"></i>
-                    <h3>No patients found</h3>
-                    <p>Try adjusting your search criteria or filters to find patients.</p>
-                </div>
+            <div class="empty-state">
+                <i class="fas fa-users"></i>
+                <h3>No patients found</h3>
+                <p>Try adjusting your search criteria or filters to find patients.</p>
+            </div>
             {% endif %}
         </div>
 
@@ -551,25 +560,25 @@
             </div>
             <div class="pagination-controls">
                 {% if page > 1 %}
-                <a href="{{ url_for('doctor_patients', page=page-1, search=search, status=status_filter, specialty=specialty_filter) }}" 
-                   class="page-btn">
+                <a href="{{ url_for('doctor_patients', page=page-1, search=search, status=status_filter, specialty=specialty_filter) }}"
+                    class="page-btn">
                     <i class="fas fa-chevron-left"></i> Previous
                 </a>
                 {% endif %}
-                
+
                 {% for p in range(max(1, page-2), min(total_pages+1, page+3)) %}
-                <a href="{{ url_for('doctor_patients', page=p, search=search, status=status_filter, specialty=specialty_filter) }}" 
-                   class="page-btn {% if p == page %}active{% endif %}">
+                <a href="{{ url_for('doctor_patients', page=p, search=search, status=status_filter, specialty=specialty_filter) }}"
+                    class="page-btn {% if p == page %}active{% endif %}">
                     {{ p }}
                 </a>
                 {% endfor %}
-                
-                {% if page < total_pages %}
-                <a href="{{ url_for('doctor_patients', page=page+1, search=search, status=status_filter, specialty=specialty_filter) }}" 
-                   class="page-btn">
+
+                {% if page < total_pages %} <a
+                    href="{{ url_for('doctor_patients', page=page+1, search=search, status=status_filter, specialty=specialty_filter) }}"
+                    class="page-btn">
                     Next <i class="fas fa-chevron-right"></i>
-                </a>
-                {% endif %}
+                    </a>
+                    {% endif %}
             </div>
         </div>
         {% endif %}
@@ -579,7 +588,7 @@
 <script>
     // Auto-submit form on filter change
     document.querySelectorAll('.filter-select').forEach(select => {
-        select.addEventListener('change', function() {
+        select.addEventListener('change', function () {
             this.closest('form').submit();
         });
     });

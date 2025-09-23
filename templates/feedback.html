@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Appointment Feedback - Healthify</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <style>
+        :root {
+            --bg: #0d0c22;
+            --card: #1a1936;
+            --primary: linear-gradient(135deg, #667eea, #764ba2);
+            --text: #fff;
+            --text-light: #94a3b8;
+            --shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .feedback-card {
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 16px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: var(--shadow);
+            text-align: center;
+            animation: fadeIn .6s ease;
+        }
+
+        h2 {
+            margin-bottom: 1.2rem;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .stars {
+            display: flex;
+            justify-content: center;
+            gap: .75rem;
+            font-size: 1.8rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .stars i {
+            color: #374151;
+            cursor: pointer;
+            transition: .25s;
+        }
+
+        .stars i.active,
+        .stars i:hover {
+            color: #fbbf24;
+            transform: scale(1.1);
+        }
+
+        textarea {
+            width: 93%;
+            min-height: 120px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #0d0c22;
+            color: var(--text);
+            padding: 1rem;
+            font-size: .95rem;
+            margin-bottom: 1.2rem;
+            resize: vertical;
+            transition: border .2s, box-shadow .2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+        }
+
+        button {
+            width: 100%;
+            padding: .9rem 1.5rem;
+            border-radius: 12px;
+            border: none;
+            background: var(--primary);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: .3s;
+            font-size: 1rem;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(102, 126, 234, 0.35);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="feedback-card">
+        <h2><i class="fas fa-comment-dots"></i> Rate Your Appointment</h2>
+        <form method="POST">
+            <div class="stars" id="starRating">
+                <i class="fas fa-star" data-value="1"></i>
+                <i class="fas fa-star" data-value="2"></i>
+                <i class="fas fa-star" data-value="3"></i>
+                <i class="fas fa-star" data-value="4"></i>
+                <i class="fas fa-star" data-value="5"></i>
+            </div>
+            <input type="hidden" name="rating" id="ratingInput" required>
+            <textarea name="comments" placeholder="Tell us about your experience..."></textarea>
+            <button type="submit"><i class="fas fa-paper-plane"></i> Submit Feedback</button>
+        </form>
+    </div>
+
+    <script>
+        const stars = document.querySelectorAll('#starRating i');
+        const ratingInput = document.getElementById('ratingInput');
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                const val = star.getAttribute('data-value');
+                ratingInput.value = val;
+                stars.forEach(s => s.classList.remove('active'));
+                for (let i = 0; i < val; i++) stars[i].classList.add('active');
+            });
+        });
+    </script>
+</body>
+
+</html>

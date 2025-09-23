@@ -3,210 +3,178 @@
 {% block title %}Appointment Details - Healthify{% endblock %}
 
 {% block content %}
-<div class="appointment-detail-wrapper">
+<div class="appointment-wrapper">
     <style>
-        /* Appointment Detail Specific Styles - Matching Dashboard Theme */
-        .appointment-detail-wrapper {
-            width: 100%;
-            min-height: 100vh;
-            background: var(--bg-color);
+        .appointment-wrapper {
+            padding: 2rem;
         }
 
-        .appointment-detail-container {
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Page Header - Matching Dashboard */
         .page-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 2rem;
             border-radius: 20px;
             margin-bottom: 2rem;
             color: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .page-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-            animation: float 6s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0px);
-            }
-            50% {
-                transform: translateY(-10px);
-            }
         }
 
         .page-header h2 {
-            margin: 0 0 0.5rem 0;
-            color: white;
-            position: relative;
-            z-index: 1;
+            margin: 0;
         }
 
         .page-header p {
-            margin: 0;
-            color: rgba(255, 255, 255, 0.8);
-            position: relative;
-            z-index: 1;
+            margin: .25rem 0 0;
+            color: rgba(255, 255, 255, 0.85);
         }
 
-        /* Back Button */
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 12px;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            margin-bottom: 1rem;
-        }
-
-        .back-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-
-        /* Content Grid */
-        .content-grid {
+        /* Stats Row */
+        .stats-row {
             display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 2rem;
-        }
-
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        /* Widgets */
-        .widget {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--border-color);
-            transition: all 0.3s ease;
-        }
-
-        .widget:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-        }
-
-        .widget-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .widget-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--text-color);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        /* Appointment Info */
-        .appointment-info {
-            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 1rem;
+            margin-bottom: 2rem;
         }
 
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem;
-            background: var(--background-color);
-            border-radius: 12px;
+        .stat-card {
+            background: var(--card-bg);
             border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
         }
 
-        .info-label {
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: .85rem;
             color: var(--text-light);
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .info-value {
-            color: var(--text-color);
-            font-weight: 600;
+            text-transform: uppercase;
         }
 
         .status-badge {
-            padding: 0.5rem 1rem;
+            padding: .35rem .75rem;
             border-radius: 20px;
-            font-size: 0.8rem;
+            font-size: .8rem;
             font-weight: 600;
             text-transform: uppercase;
         }
 
         .status-confirmed {
-            background: rgba(34, 197, 94, 0.1);
+            background: rgba(34, 197, 94, .1);
             color: #22c55e;
-            border: 1px solid rgba(34, 197, 94, 0.3);
         }
 
         .status-active {
-            background: rgba(59, 130, 246, 0.1);
+            background: rgba(59, 130, 246, .1);
             color: #3b82f6;
-            border: 1px solid rgba(59, 130, 246, 0.3);
         }
 
         .status-completed {
-            background: rgba(16, 185, 129, 0.1);
+            background: rgba(16, 185, 129, .1);
             color: #10b981;
-            border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
         .status-cancelled {
-            background: rgba(239, 68, 68, 0.1);
+            background: rgba(239, 68, 68, .1);
             color: #ef4444;
-            border: 1px solid rgba(239, 68, 68, 0.3);
         }
 
-        /* Form Sections */
-        .form-section {
-            background: var(--background-color);
-            padding: 1.5rem;
+        .status-no_show {
+            background: rgba(250, 204, 21, .15);
+            color: #ca8a04;
+        }
+
+        /* Quick Actions */
+        .actions-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-btn {
+            flex: 1;
+            min-width: 160px;
+            padding: .85rem 1rem;
             border-radius: 12px;
             border: 1px solid var(--border-color);
+            background: var(--background-color);
+            color: var(--text-primary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .action-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 1rem;
             margin-bottom: 1rem;
         }
 
-        .form-section h4 {
-            margin: 0 0 1rem 0;
-            color: var(--text-color);
-            font-size: 1rem;
+        .tab {
+            padding: .75rem 1.25rem;
+            border-radius: 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
             font-weight: 600;
+            transition: .2s;
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card h3 {
+            margin: 0 0 1rem;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .info-item {
+            margin-bottom: .75rem;
+        }
+
+        .info-label {
+            font-size: .85rem;
+            color: var(--text-light);
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: var(--text-primary);
         }
 
         .form-group {
@@ -215,592 +183,253 @@
 
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-color);
+            margin-bottom: .35rem;
             font-weight: 500;
-            font-size: 0.9rem;
+            font-size: .9rem;
         }
 
-        .form-group input,
         .form-group textarea,
         .form-group select {
             width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
+            padding: .75rem;
             border-radius: 8px;
-            background: var(--card-bg);
-            color: var(--text-color);
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary {
-            background: var(--background-color);
-            color: var(--text-color);
             border: 1px solid var(--border-color);
+            background: var(--background-color);
+            color: var(--text-primary);
         }
 
-        .btn-secondary:hover {
-            background: var(--border-color);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-        }
-
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
-        }
-
-        /* Patient History */
         .history-item {
             padding: 1rem;
             border-bottom: 1px solid var(--border-color);
-            transition: all 0.3s ease;
         }
 
         .history-item:last-child {
             border-bottom: none;
         }
 
-        .history-item:hover {
-            background: rgba(102, 126, 234, 0.05);
-            border-radius: 8px;
-        }
-
         .history-date {
-            font-size: 0.8rem;
+            font-size: .8rem;
             color: var(--text-light);
-            margin-bottom: 0.5rem;
+            margin-bottom: .25rem;
         }
 
         .history-content h4 {
-            margin: 0 0 0.5rem 0;
-            color: var(--text-color);
-            font-size: 0.95rem;
+            margin: 0 0 .25rem;
+            font-size: .95rem;
+            color: var(--text-primary);
         }
 
         .history-content p {
             margin: 0;
+            font-size: .85rem;
             color: var(--text-light);
-            font-size: 0.85rem;
-            line-height: 1.4;
         }
 
-        /* Quick Actions */
-        .quick-actions {
-            display: grid;
-            gap: 1rem;
+        .margin15 {
+            margin-top: 15px;
         }
 
-        .quick-action-btn {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            background: var(--background-color);
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            text-decoration: none;
-            color: var(--text-color);
-            transition: all 0.3s ease;
-        }
-
-        .quick-action-btn:hover {
-            border-color: var(--primary-color);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
-        }
-
-        .quick-action-btn i {
-            font-size: 1.2rem;
-            color: var(--primary-color);
-        }
-
-        /* Responsive Design */
-        @media (max-width: 1024px) {
-            .content-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            .info-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.5rem;
-            }
-        }
-
-        /* Animations */
-        .fade-in {
-            animation: fadeIn 0.6s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Loading States */
-        .loading {
-            opacity: 0.6;
-            pointer-events: none;
-        }
-
-        .loading::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 20px;
-            height: 20px;
-            margin: -10px 0 0 -10px;
-            border: 2px solid var(--primary-color);
-            border-top: 2px solid transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .margin5 {
+            margin-top: 5px;
         }
     </style>
 
-    <div class="appointment-detail-container">
-        <!-- Back Button -->
-        <a href="{{ url_for('doctor_dashboard') }}" class="back-btn">
-            <i class="fas fa-arrow-left"></i>
-            Back to Dashboard
-        </a>
+    <!-- Header -->
+    <div class="page-header">
+        <h2>{{ appointment.patient_name }}</h2>
+        <p>{{ appointment.start_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+    </div>
 
-        <!-- Page Header -->
-        <div class="page-header">
-            <h2><i class="fas fa-calendar-check"></i> Appointment Details</h2>
-            <p>Manage appointment information, add notes, and update patient status.</p>
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-number">
+                <span class="status-badge status-{{ appointment.status }}">{{ appointment.status|title }}</span>
+            </div>
+            <div class="stat-label margin15">Status</div>
         </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ specialties[appointment.specialty].name if appointment.specialty in specialties
+                else appointment.specialty|title }}</div>
+            <div class="stat-label margin15">Specialty</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ appointment.start_at.strftime('%I:%M %p') }} - {{
+                appointment.end_at.strftime('%I:%M %p') }}</div>
+            <div class="stat-label margin15">Time</div>
+        </div>
+    </div>
 
-        <!-- Content Grid -->
-        <div class="content-grid">
-            <div class="main-content">
-                <!-- Appointment Information -->
-                <div class="widget fade-in">
-                    <div class="widget-header">
-                        <div class="widget-title">
-                            <i class="fas fa-info-circle"></i>
-                            Appointment Information
-                        </div>
-                    </div>
-                    <div class="appointment-info">
-                        <div class="info-item">
-                            <span class="info-label">Patient Name</span>
-                            <span class="info-value">{{ appointment.patient_name }}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Date & Time</span>
-                            <span class="info-value">
-                                {{ appointment.start_at.strftime('%B %d, %Y at %I:%M %p') }} - 
-                                {{ appointment.end_at.strftime('%I:%M %p') }}
-                            </span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Specialty</span>
-                            <span class="info-value">
-                                {{ specialties[appointment.specialty].name if appointment.specialty in specialties else appointment.specialty|title }}
-                            </span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Status</span>
-                            <span class="status-badge status-{{ appointment.status }}">
-                                {{ appointment.status|title }}
-                            </span>
-                        </div>
-                        {% if appointment.notes %}
-                        <div class="info-item">
-                            <span class="info-label">Patient Notes</span>
-                            <span class="info-value">{{ appointment.notes }}</span>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
+    <!-- Quick Actions -->
+    <div class="actions-row">
+        {% if appointment.status != "completed" and appointment.status != "cancelled" %}
+        {% if appointment.status == "confirmed" %}
+        <button class="action-btn" onclick="startAppointment('{{ appointment._id }}')">
+            <i class="fas fa-play"></i> Start
+        </button>
+        {% endif %}
+        {% if appointment.status == "active" %}
+        <button class="action-btn" onclick="completeAppointment('{{ appointment._id }}')">
+            <i class="fas fa-check"></i> Complete
+        </button>
+        {% endif %}
+        {% endif %}
 
-                <!-- Doctor Notes & Diagnosis -->
-                <div class="widget fade-in">
-                    <div class="widget-header">
-                        <div class="widget-title">
-                            <i class="fas fa-notes-medical"></i>
-                            Medical Notes & Diagnosis
-                        </div>
-                    </div>
-                    <form id="appointmentForm">
-                        <div class="form-section">
-                            <h4>Appointment Status</h4>
-                            <div class="form-group">
-                                <label for="status">Status</label>
-                                <select id="status" name="status" required>
-                                    <option value="confirmed" {% if appointment.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
-                                    <option value="active" {% if appointment.status == 'active' %}selected{% endif %}>Active</option>
-                                    <option value="completed" {% if appointment.status == 'completed' %}selected{% endif %}>Completed</option>
-                                    <option value="cancelled" {% if appointment.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
-                                    <option value="no_show" {% if appointment.status == 'no_show' %}selected{% endif %}>No Show</option>
-                                </select>
-                            </div>
-                        </div>
+        <button class="action-btn" onclick="scheduleFollowUp()">
+            <i class="fas fa-calendar-plus"></i> Follow-up
+        </button>
+        <button class="action-btn" onclick="sendMessage()">
+            <i class="fas fa-comment"></i> Message
+        </button>
+    </div>
 
-                        <div class="form-section">
-                            <h4>Diagnosis</h4>
-                            <div class="form-group">
-                                <label for="diagnosis">Primary Diagnosis</label>
-                                <textarea id="diagnosis" name="diagnosis" placeholder="Enter primary diagnosis...">{{ appointment.diagnosis or '' }}</textarea>
-                            </div>
-                        </div>
 
-                        <div class="form-section">
-                            <h4>Treatment Plan</h4>
-                            <div class="form-group">
-                                <label for="prescription">Prescription/Medications</label>
-                                <textarea id="prescription" name="prescription" placeholder="Enter prescriptions or medications...">{{ appointment.prescription or '' }}</textarea>
-                            </div>
-                        </div>
+    <!-- Tabs -->
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('details')">Details</div>
+        <div class="tab" onclick="showTab('clinical')">Clinical Notes</div>
+        <div class="tab" onclick="showTab('history')">History</div>
+    </div>
 
-                        <div class="form-section">
-                            <h4>Doctor Notes</h4>
-                            <div class="form-group">
-                                <label for="notes">Clinical Notes</label>
-                                <textarea id="notes" name="notes" placeholder="Enter clinical notes, observations, or recommendations...">{{ appointment.doctor_notes or '' }}</textarea>
-                            </div>
-                        </div>
+    <!-- Details -->
+    <div id="details" class="tab-content active">
+        <div class="card">
+            <h3>Appointment Info</h3>
+            <div class="info-item"><span class="info-label">Patient Email</span>
+                <div class="info-value margin5">{{ appointment.patient_email }}</div>
+            </div>
+            {% if appointment.notes %}
+            <div class="info-item"><span class="info-label">Patient Notes</span>
+                <div class="info-value margin5">{{ appointment.notes }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 
-                        <div class="action-buttons">
-                            <button type="submit" class="btn btn-primary" id="saveBtn">
-                                <i class="fas fa-save"></i> Save Changes
-                            </button>
-                            <button type="button" class="btn btn-secondary" onclick="resetForm()">
-                                <i class="fas fa-undo"></i> Reset
-                            </button>
-                        </div>
-                    </form>
+    <!-- Clinical Notes -->
+    <div id="clinical" class="tab-content">
+        <form id="appointmentForm" class="card">
+            <h3>Update Clinical Information</h3>
+            <div class="form-group">
+                <label>Status</label>
+                <select name="status" id="status">
+                    <option value="confirmed" {% if appointment.status=='confirmed' %}selected{% endif %}>Confirmed
+                    </option>
+                    <option value="active" {% if appointment.status=='active' %}selected{% endif %}>Active</option>
+                    <option value="completed" {% if appointment.status=='completed' %}selected{% endif %}>Completed
+                    </option>
+                    <option value="cancelled" {% if appointment.status=='cancelled' %}selected{% endif %}>Cancelled
+                    </option>
+                    <option value="no_show" {% if appointment.status=='no_show' %}selected{% endif %}>No Show</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Diagnosis</label>
+                <textarea name="diagnosis">{{ appointment.diagnosis or '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Prescription</label>
+                <textarea name="prescription">{{ appointment.prescription or '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Doctor Notes</label>
+                <textarea name="notes">{{ appointment.doctor_notes or '' }}</textarea>
+            </div>
+            <button type="submit" class="action-btn" style="background:var(--primary-color);color:#fff;">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </form>
+    </div>
+
+    <!-- History -->
+    <div id="history" class="tab-content">
+        <div class="card">
+            <h3>Previous Appointments</h3>
+            {% if patient_appointments %}
+            {% for prev in patient_appointments %}
+            <div class="history-item">
+                <div class="history-date">{{ prev.start_at.strftime('%B %d, %Y') }}</div>
+                <div class="history-content">
+                    <h4>{{ specialties[prev.specialty].name if prev.specialty in specialties else prev.specialty|title
+                        }}</h4>
+                    <p><span class="status-badge status-{{ prev.status }}">{{ prev.status|title }}</span></p>
                 </div>
             </div>
-
-            <div class="sidebar">
-                <!-- Quick Actions -->
-                <div class="widget fade-in">
-                    <div class="widget-header">
-                        <div class="widget-title">
-                            <i class="fas fa-bolt"></i>
-                            Quick Actions
-                        </div>
-                    </div>
-                    <div class="quick-actions">
-                        <a href="#" class="quick-action-btn" onclick="startAppointment()">
-                            <i class="fas fa-play"></i>
-                            <div>
-                                <strong>Start Appointment</strong>
-                                <small>Begin consultation</small>
-                            </div>
-                        </a>
-                        <a href="#" class="quick-action-btn" onclick="completeAppointment()">
-                            <i class="fas fa-check"></i>
-                            <div>
-                                <strong>Complete</strong>
-                                <small>Mark as finished</small>
-                            </div>
-                        </a>
-                        <a href="#" class="quick-action-btn" onclick="scheduleFollowUp()">
-                            <i class="fas fa-calendar-plus"></i>
-                            <div>
-                                <strong>Schedule Follow-up</strong>
-                                <small>Book next appointment</small>
-                            </div>
-                        </a>
-                        <a href="#" class="quick-action-btn" onclick="sendMessage()">
-                            <i class="fas fa-comment"></i>
-                            <div>
-                                <strong>Send Message</strong>
-                                <small>Contact patient</small>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Patient History -->
-                {% if patient_appointments %}
-                <div class="widget fade-in">
-                    <div class="widget-header">
-                        <div class="widget-title">
-                            <i class="fas fa-history"></i>
-                            Previous Appointments
-                        </div>
-                    </div>
-                    {% for prev_apt in patient_appointments %}
-                    <div class="history-item">
-                        <div class="history-date">{{ prev_apt.start_at.strftime('%B %d, %Y') }}</div>
-                        <div class="history-content">
-                            <h4>{{ specialties[prev_apt.specialty].name if prev_apt.specialty in specialties else prev_apt.specialty|title }}</h4>
-                            <p>
-                                <span class="status-badge status-{{ prev_apt.status }}">{{ prev_apt.status|title }}</span>
-                                {% if prev_apt.doctor_notes %}
-                                <br>{{ prev_apt.doctor_notes[:100] }}{% if prev_apt.doctor_notes|length > 100 %}...{% endif %}
-                                {% endif %}
-                            </p>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-                <!-- Medical History -->
-                {% if patient_history %}
-                <div class="widget fade-in">
-                    <div class="widget-header">
-                        <div class="widget-title">
-                            <i class="fas fa-notes-medical"></i>
-                            Medical History
-                        </div>
-                    </div>
-                    {% for entry in patient_history.entries[:3] %}
-                    <div class="history-item">
-                        <div class="history-date">{{ entry.date.strftime('%B %d, %Y') }}</div>
-                        <div class="history-content">
-                            <h4>{{ entry.condition or 'General Checkup' }}</h4>
-                            {% if entry.diagnosis %}
-                            <p><strong>Diagnosis:</strong> {{ entry.diagnosis[:100] }}{% if entry.diagnosis|length > 100 %}...{% endif %}</p>
-                            {% endif %}
-                            {% if entry.treatment %}
-                            <p><strong>Treatment:</strong> {{ entry.treatment[:100] }}{% if entry.treatment|length > 100 %}...{% endif %}</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                    {% if patient_history.entries|length > 3 %}
-                    <div style="text-align: center; padding: 1rem;">
-                        <a href="{{ url_for('doctor_patient_profile', patient_email=appointment.patient_email) }}" class="btn btn-secondary">
-                            View Full History
-                        </a>
-                    </div>
-                    {% endif %}
-                </div>
-                {% endif %}
-            </div>
+            {% endfor %}
+            {% else %}
+            <p style="color:var(--text-light);">No previous appointments.</p>
+            {% endif %}
         </div>
+
     </div>
 </div>
 
 <script>
-    // Handle form submission
-    document.getElementById('appointmentForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const saveBtn = document.getElementById('saveBtn');
-        saveBtn.classList.add('loading');
-        saveBtn.disabled = true;
-        
-        const formData = new FormData(this);
-        const data = {
-            status: formData.get('status'),
-            diagnosis: formData.get('diagnosis'),
-            prescription: formData.get('prescription'),
-            notes: formData.get('notes')
-        };
+    function showTab(id) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelector(`.tab[onclick="showTab('${id}')"]`).classList.add('active');
+        document.getElementById(id).classList.add('active');
+    }
 
+    // Save clinical info
+    document.getElementById('appointmentForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
         fetch(`{{ url_for('doctor_appointment_update', appointment_id=appointment._id) }}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        }).then(r => r.json()).then(res => {
+            if (res.success) { alert('Appointment updated'); location.reload(); }
+            else alert('Error: ' + res.message);
+        }).catch(err => { alert('Error updating appointment'); console.error(err); });
+    });
+
+    function scheduleFollowUp() { alert('Follow-up scheduling coming soon!'); }
+    function sendMessage() { alert('Messaging system coming soon!'); }
+
+    function startAppointment(appointmentId) {
+        if (!confirm("Start this appointment?")) return;
+
+        fetch(`/doctor/appointment/${appointmentId}/start`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
         })
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
             if (data.success) {
-                showNotification('Appointment updated successfully!', 'success');
-                // Update status badge
-                updateStatusBadge(formData.get('status'));
+                alert("Appointment started. Meeting link sent to patient and doctor.");
+                window.open(data.meeting_link, "_blank");
+                location.reload();
             } else {
-                showNotification('Error: ' + data.message, 'error');
+                alert("Error: " + data.message);
             }
         })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('Error updating appointment.', 'error');
+        .catch(err => {
+            console.error("Error starting appointment:", err);
+            alert("Failed to start appointment. Try again.");
+        });
+    }
+
+    function completeAppointment(appointmentId) {
+        if (!confirm("appointment completed?")) return;
+
+        fetch(`/doctor/appointment/${appointmentId}/complete`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
         })
-        .finally(() => {
-            saveBtn.classList.remove('loading');
-            saveBtn.disabled = false;
-        });
-    });
-
-    // Update status badge
-    function updateStatusBadge(status) {
-        const statusBadge = document.querySelector('.status-badge');
-        if (statusBadge) {
-            statusBadge.className = `status-badge status-${status}`;
-            statusBadge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
-        }
-    }
-
-    // Reset form
-    function resetForm() {
-        document.getElementById('appointmentForm').reset();
-        showNotification('Form reset to original values.', 'info');
-    }
-
-    // Quick action functions
-    function startAppointment() {
-        document.getElementById('status').value = 'active';
-        document.getElementById('appointmentForm').dispatchEvent(new Event('submit'));
-    }
-
-    function completeAppointment() {
-        document.getElementById('status').value = 'completed';
-        document.getElementById('appointmentForm').dispatchEvent(new Event('submit'));
-    }
-
-    function scheduleFollowUp() {
-        alert('Follow-up scheduling coming soon!');
-    }
-
-    function sendMessage() {
-        alert('Messaging system coming soon!');
-    }
-
-    // Notification system
-    function showNotification(message, type = 'info') {
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            color: white;
-            font-weight: 500;
-            z-index: 1000;
-            animation: slideIn 0.3s ease;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-        `;
-        
-        // Set background based on type
-        if (type === 'success') {
-            notification.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-        } else if (type === 'error') {
-            notification.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
-        } else {
-            notification.style.background = 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)';
-        }
-        
-        notification.textContent = message;
-        document.body.appendChild(notification);
-        
-        // Remove after 4 seconds
-        setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => {
-                document.body.removeChild(notification);
-            }, 300);
-        }, 4000);
-    }
-
-    // Add CSS for notifications
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
-    `;
-    document.head.appendChild(style);
-
-    // Add smooth animations
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver(function (entries) {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert("Error: " + data.message);
             }
+        })
+        .catch(err => {
+            console.error("Error starting appointment:", err);
+            alert("Failed to start appointment. Try again.");
         });
-    }, observerOptions);
-
-    // Observe all widgets
-    document.querySelectorAll('.widget').forEach(element => {
-        observer.observe(element);
-    });
+    }
 </script>
 {% endblock %}

@@ -4,50 +4,308 @@
 
 {% block content %}
 <style>
-    .appt-card { background: var(--card-bg); padding: 18px; border-radius: 14px; box-shadow: var(--shadow); margin-bottom: 14px; }
-    .appt-meta { display:flex; gap: 12px; flex-wrap: wrap; color: var(--text-light); }
-    .appt-actions { margin-top: 10px; display:flex; gap: 10px; }
-    .btn { padding: 8px 14px; border-radius: 10px; border: 1px solid var(--primary-color); color: var(--primary-color); background: transparent; cursor: pointer; text-decoration: none; }
-    .btn-primary { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+    .timeline {
+        position: relative;
+        margin: 2rem 0;
+        padding-left: 40px;
+    }
+
+    .timeline::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 18px;
+        width: 4px;
+        height: 100%;
+        background: var(--primary-color);
+        border-radius: 2px;
+        opacity: 0.4;
+    }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 2rem;
+        animation: fadeInUp 0.6s ease;
+    }
+
+    .timeline-dot {
+        position: absolute;
+        top: 0.5rem;
+        left: -1px;
+        width: 16px;
+        height: 16px;
+        background: var(--primary-color);
+        border-radius: 50%;
+        box-shadow: 0 0 0 4px var(--card-bg);
+    }
+
+    .timeline-content {
+        background: var(--card-bg);
+        padding: 20px;
+        border-radius: 14px;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .timeline-content:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    .appt-title {
+        margin: 0 0 8px;
+        font-size: 1.1rem;
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    .appt-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        font-size: 0.9rem;
+        color: var(--text-light);
+        margin-bottom: 8px;
+    }
+
+    .appt-meta span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .appt-notes {
+        margin-top: 8px;
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+    }
+
+    .appt-actions {
+        margin-top: 14px;
+    }
+
+    .btn {
+        padding: 8px 16px;
+        border-radius: 10px;
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+        background: transparent;
+        cursor: pointer;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.25s ease;
+    }
+
+    .btn:hover {
+        background: rgba(var(--primary-rgb), 0.1);
+    }
+
+    /* Status badges */
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+
+    .status-confirmed {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 </style>
 
+<style>
+    .appointment-alert {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        color: #fff;
+        font-weight: 500;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        animation: slideIn 0.5s ease-out;
+    }
+
+    .alert-icon {
+        background: rgba(255, 255, 255, 0.2);
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+    }
+
+    .alert-content h4 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    .alert-content p {
+        margin: 0.2rem 0 0;
+        font-size: 0.9rem;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateY(-15px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    /* Status badges */
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: capitalize;
+        display: inline-block;
+    }
+
+    /* Confirmed (green) */
+    .status-confirmed {
+        background: rgba(34, 197, 94, 0.15);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.4);
+    }
+
+    /* Pending (amber) */
+    .status-pending {
+        background: rgba(251, 191, 36, 0.15);
+        color: #d97706;
+        border: 1px solid rgba(251, 191, 36, 0.4);
+    }
+
+    /* Active (blue) */
+    .status-active {
+        background: rgba(59, 130, 246, 0.15);
+        color: #2563eb;
+        border: 1px solid rgba(59, 130, 246, 0.4);
+    }
+
+    /* Completed (teal/emerald) */
+    .status-completed {
+        background: rgba(16, 185, 129, 0.15);
+        color: #059669;
+        border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    /* Cancelled (red) */
+    .status-cancelled {
+        background: rgba(239, 68, 68, 0.15);
+        color: #dc2626;
+        border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    /* No show (gray) */
+    .status-no_show {
+        background: rgba(107, 114, 128, 0.15);
+        color: #6b7280;
+        border: 1px solid rgba(107, 114, 128, 0.4);
+    }
+</style>
+
+
 <header>
-    <div class="header-title">
+    <div class="header-title" style="margin-bottom:1.5rem;">
         <h1>Your Appointments</h1>
-        <p>Upcoming and past bookings.</p>
+        <p>Track your upcoming and past visits</p>
+    </div>
+    <div>
+        <a class="btn btn-primary" href="{{ url_for('book_appointment') }}">+ Book New Appointment</a>
     </div>
 </header>
 
-<div>
-    <div style="margin-bottom: 12px;">
-        <a class="btn btn-primary" href="{{ url_for('book_appointment') }}">Book New Appointment</a>
+{# show alert if any upcoming appointment is within 10 minutes #}
+{% for a in appointments %}
+{% set diff = (a.start_at - now).total_seconds() / 60 %}
+{% if 0 < diff <=10 %} <div class="appointment-alert fade-in">
+    <div class="alert-icon"><i class="fas fa-bell"></i></div>
+    <div class="alert-content">
+        <h4>Upcoming Appointment</h4>
+        <p>Your appointment with <strong>{{ a.doctor_name }}</strong> starts in
+            <strong>{{ diff|round(0) }} minutes</strong>.
+        </p>
     </div>
-    {% if appointments %}
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    <div class="timeline">
+        {% if appointments %}
         {% for a in appointments %}
-            <div class="appt-card">
-                <div style="display:flex; justify-content: space-between; align-items:center;">
-                    <div>
-                        <h3 style="margin:0;">{{ specialties[a.specialty].name }} with {{ a.doctor_name }}</h3>
-                        <div class="appt-meta">
-                            <span><i class="fas fa-calendar"></i> {{ a.start_at.strftime('%B %d, %Y') }}</span>
-                            <span><i class="fas fa-clock"></i> {{ a.start_at.strftime('%I:%M %p') }} - {{ a.end_at.strftime('%I:%M %p') }}</span>
-                            <span><i class="fas fa-info-circle"></i> {{ a.status|capitalize }}</span>
-                        </div>
-                    </div>
+        <div class="timeline-item">
+            <div class="timeline-content">
+                <h3 class="appt-title">{{ specialties[a.specialty].name }} with {{ a.doctor_name }}</h3>
+                <div class="appt-meta">
+                    <span><i class="fas fa-calendar"></i> {{ a.start_at.strftime('%B %d, %Y') }}</span>
+                    <span><i class="fas fa-clock"></i> {{ a.start_at.strftime('%I:%M %p') }} - {{
+                        a.end_at.strftime('%I:%M %p') }}</span>
+                    <span>
+                        {% if a.status == "confirmed" %}
+                        <span class="status-badge status-confirmed">{{ a.status }}</span>
+                        {% elif a.status == "pending" %}
+                        <span class="status-badge status-pending">{{ a.status }}</span>
+                        {% elif a.status == "cancelled" %}
+                        <span class="status-badge status-cancelled">{{ a.status }}</span>
+                        {% elif a.status == "completed" %}
+                        <span class="status-badge status-completed">{{ a.status }}</span>
+                        {% else %}
+                        <span class="status-badge">{{ a.status }}</span>
+                        {% endif %}
+                    </span>
                 </div>
                 {% if a.notes %}
-                <p style="margin-top:8px;">Notes: {{ a.notes }}</p>
+                <p class="appt-notes">Notes: {{ a.notes }}</p>
                 {% endif %}
-                <div class="appt-actions">
-                    <a class="btn" href="{{ url_for('book_appointment', specialty=a.specialty) }}">Reschedule</a>
-                </div>
             </div>
+        </div>
         {% endfor %}
-    {% else %}
-        <div class="appt-card"><p>No appointments yet.</p></div>
-    {% endif %}
-</div>
+        {% else %}
+        <div class="timeline-item">
+            <div class="timeline-content" style="text-align:center;">
+                <i class="fas fa-calendar-times" style="font-size:2rem; opacity:0.6;"></i>
+                <p style="margin-top:0.5rem;">No appointments yet</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
 
-{% endblock %}
 
-
+    {% endblock %}

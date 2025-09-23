@@ -610,6 +610,146 @@
         }
     </style>
 
+    <style>
+        .appointment-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1rem;
+            transition: all .2s ease;
+        }
+
+        .appointment-card:hover {
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .appointment-left {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .appt-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .appt-name {
+            margin: 0;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .appt-meta {
+            margin: 0.2rem 0 0;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .appt-notes {
+            margin: 0.3rem 0 0;
+            font-size: 0.85rem;
+            font-style: italic;
+            color: var(--text-secondary);
+        }
+
+        .appointment-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: .5rem;
+        }
+
+        .status-badge {
+            padding: 0.35rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-confirmed {
+            background: rgba(34, 197, 94, .15);
+            color: #22c55e;
+        }
+
+        .status-active {
+            background: rgba(59, 130, 246, .15);
+            color: #2563eb;
+        }
+
+        .status-completed {
+            background: rgba(16, 185, 129, .15);
+            color: #059669;
+        }
+
+        .status-cancelled {
+            background: rgba(239, 68, 68, .15);
+            color: #dc2626;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .4rem;
+            justify-content: flex-end;
+        }
+
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+            padding: .45rem .75rem;
+            font-size: 0.8rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all .2s ease;
+        }
+
+        .btn-icon i {
+            font-size: 0.85rem;
+        }
+
+        .btn-icon.info {
+            background: rgba(59, 130, 246, .1);
+            color: #2563eb;
+        }
+
+        .btn-icon.success {
+            background: rgba(16, 185, 129, .1);
+            color: #059669;
+        }
+
+        .btn-icon.primary {
+            background: rgba(99, 102, 241, .1);
+            color: #4f46e5;
+        }
+
+        .btn-icon.danger {
+            background: rgba(239, 68, 68, .1);
+            color: #dc2626;
+        }
+
+        .btn-icon:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+
     <div class="dashboard-container">
         <!-- Page Header -->
         <div class="page-header">
@@ -622,13 +762,6 @@
                         <h1>{{ session.get('doctor_name', 'Doctor') }}</h1>
                         <p>Welcome back! Here's your dashboard overview</p>
                     </div>
-                </div>
-                <div class="status-toggle">
-                    <span>Status:</span>
-                    <div class="status-switch" id="statusSwitch">
-                        <input type="checkbox" id="statusToggle" style="display: none;">
-                    </div>
-                    <span id="statusText">Inactive</span>
                 </div>
             </div>
         </div>
@@ -685,48 +818,52 @@
                 <div class="widget fade-in">
                     <div class="widget-header">
                         <div class="widget-title">
-                            <i class="fas fa-calendar-alt"></i>
-                            Today's Appointments
+                            <i class="fas fa-calendar-day"></i> Today's Appointments
                         </div>
                     </div>
+
                     {% if appointments %}
                     {% for appointment in appointments %}
-                    <div class="appointment-item">
-                        <div class="appointment-icon">
-                            <i class="fas fa-user"></i>
+                    <div class="appointment-card">
+                        <div class="appointment-left">
+                            <div class="appt-avatar"><i class="fas fa-user"></i></div>
+                            <div>
+                                <h4 class="appt-name">{{ appointment.patient_name or 'Patient' }}</h4>
+                                <p class="appt-meta">
+                                    <i class="fas fa-clock"></i> {{ appointment.start_at.strftime('%I:%M %p') }} – {{
+                                    appointment.end_at.strftime('%I:%M %p') }}
+                                    &nbsp; | &nbsp; <i class="fas fa-stethoscope"></i>
+                                    {{ specialties[appointment.specialty].name }}
+                                </p>
+                                {% if appointment.notes %}
+                                <p class="appt-notes"><i class="fas fa-sticky-note"></i> {{ appointment.notes }}</p>
+                                {% endif %}
+                            </div>
                         </div>
-                        <div class="appointment-content">
-                            <h4>{{ appointment.patient_name or 'Patient' }}</h4>
-                            <p>
-                                <i class="fas fa-clock"></i> {{ appointment.start_at.strftime('%I:%M %p') }} - {{
-                                appointment.end_at.strftime('%I:%M %p') }} |
-                                <i class="fas fa-stethoscope"></i> {{ specialties[appointment.specialty].name }} |
-                                <span class="status-badge status-{{ appointment.status }}">{{
-                                    appointment.status|capitalize }}</span>
-                            </p>
-                            {% if appointment.notes %}
-                            <p style="margin-top: 0.5rem; font-style: italic;">{{ appointment.notes }}</p>
-                            {% endif %}
-                        </div>
-                        <div class="appointment-actions">
-                            <form id="form-{{ appointment._id }}" method="POST"
-                                action="{{ url_for('doctor_update_status', appointment_id=appointment._id) }}"
-                                style="display:none;">
-                                <input type="hidden" name="status" value="" />
-                            </form>
-                            <a href="{{ url_for('doctor_appointment_detail', appointment_id=appointment._id) }}" class="action-btn">
-                                <i class="fas fa-eye"></i> View
-                            </a>
-                            <button class="action-btn success" onclick="submitStatus('{{ appointment._id }}','active')">
-                                <i class="fas fa-play"></i> Start
-                            </button>
-                            <button class="action-btn" onclick="submitStatus('{{ appointment._id }}','completed')">
-                                <i class="fas fa-check"></i> Complete
-                            </button>
-                            <button class="action-btn danger"
-                                onclick="submitStatus('{{ appointment._id }}','cancelled')">
-                                <i class="fas fa-times"></i> Cancel
-                            </button>
+
+                        <div class="appointment-right">
+                            <span class="status-badge status-{{ appointment.status }}">{{ appointment.status|capitalize
+                                }}</span>
+                            <div class="action-buttons">
+                                <a href="{{ url_for('doctor_appointment_detail', appointment_id=appointment._id) }}"
+                                    class="btn-icon info" style="color: white; text-decoration: none;">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                {% if appointment.status not in ['completed','cancelled'] %}
+                                <button class="btn-icon success"
+                                    onclick="submitStatus('{{ appointment._id }}','active')">
+                                    <i class="fas fa-play"></i> Start
+                                </button>
+                                <button class="btn-icon primary"
+                                    onclick="submitStatus('{{ appointment._id }}','completed')">
+                                    <i class="fas fa-check"></i> Complete
+                                </button>
+                                <button class="btn-icon danger"
+                                    onclick="submitStatus('{{ appointment._id }}','cancelled')">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                     {% endfor %}
@@ -739,87 +876,10 @@
                     {% endif %}
                 </div>
 
-                <!-- Schedule Calendar -->
-                <div class="schedule-calendar fade-in">
-                    <div class="widget-header">
-                        <div class="widget-title">
-                            <i class="fas fa-calendar"></i>
-                            Weekly Schedule
-                        </div>
-                        <button class="btn-icon" onclick="openScheduleModal()" title="Manage Schedule">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    </div>
-                    <div class="calendar-header">
-                        <h3 id="currentMonth">December 2024</h3>
-                        <div class="calendar-nav">
-                            <button class="calendar-nav-btn" onclick="previousWeek()">
-                                <i class="fas fa-chevron-left"></i>
-                            </button>
-                            <button class="calendar-nav-btn" onclick="nextWeek()">
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="calendar-grid" id="calendarGrid">
-                        <!-- Calendar days will be populated by JavaScript -->
-                    </div>
-                    <div class="schedule-summary">
-                        <h4>Today's Schedule</h4>
-                        <div id="todaySchedule" style="height: calc(100% - 80px); overflow-y: auto;">
-                            <div class="schedule-item">
-                                <div class="schedule-time">09:00 - 09:30</div>
-                                <div class="schedule-status available">Available</div>
-                            </div>
-                            <div class="schedule-item">
-                                <div class="schedule-time">10:00 - 10:30</div>
-                                <div class="schedule-status booked">Booked</div>
-                            </div>
-                            <div class="schedule-item">
-                                <div class="schedule-time">11:00 - 11:30</div>
-                                <div class="schedule-status available">Available</div>
-                            </div>
-                            <div class="schedule-item">
-                                <div class="schedule-time">14:00 - 14:30</div>
-                                <div class="schedule-status available">Available</div>
-                            </div>
-                            <div class="schedule-item">
-                                <div class="schedule-time">15:00 - 15:30</div>
-                                <div class="schedule-status booked">Booked</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+
             </div>
 
             <div class="dr-dashboard-sidebar">
-                <!-- Quick Actions -->
-                <div class="widget fade-in">
-                    <div class="widget-header">
-                        <div class="widget-title">
-                            <i class="fas fa-bolt"></i>
-                            Quick Actions
-                        </div>
-                    </div>
-                    <div class="quick-actions">
-                        <a href="{{ url_for('doctor_patients') }}" class="action-card">
-                            <i class="fas fa-users"></i>
-                            <span>Patient Directory</span>
-                        </a>
-                        <a href="{{ url_for('schedule_managment') }}" class="action-card">
-                            <i class="fas fa-clock"></i>
-                            <span>Schedule Management</span>
-                        </a>
-                        <a href="#" class="action-card" onclick="openProfileModal()">
-                            <i class="fas fa-user-edit"></i>
-                            <span>Edit Profile</span>
-                        </a>
-                        <a href="{{ url_for('doctor_logout') }}" class="action-card">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <span>Logout</span>
-                        </a>
-                    </div>
-                </div>
 
                 <!-- Recent Activity -->
                 <div class="widget fade-in">
@@ -860,22 +920,6 @@
                     </div>
                 </div>
 
-                <!-- Health Tips -->
-                <div class="widget fade-in">
-                    <div class="widget-header">
-                        <div class="widget-title">
-                            <i class="fas fa-lightbulb"></i>
-                            Health Tips
-                        </div>
-                    </div>
-                    <div style="color: var(--text-light); font-size: 0.9rem; line-height: 1.5;">
-                        <p><strong>💡 Tip:</strong> Regular exercise can reduce the risk of heart disease by up to 30%.
-                        </p>
-                        <p><strong>💡 Tip:</strong> Drinking 8 glasses of water daily helps maintain kidney health.</p>
-                        <p><strong>💡 Tip:</strong> Annual eye checkups can detect early signs of diabetic retinopathy.
-                        </p>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

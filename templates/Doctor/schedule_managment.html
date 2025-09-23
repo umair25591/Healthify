@@ -40,9 +40,12 @@
         }
 
         @keyframes float {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: translateY(0px);
             }
+
             50% {
                 transform: translateY(-10px);
             }
@@ -111,6 +114,7 @@
                 opacity: 0;
                 transform: translateY(10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -258,7 +262,9 @@
             gap: 1rem;
         }
 
-        .time-range, .slot-duration, .break-time {
+        .time-range,
+        .slot-duration,
+        .break-time {
             display: flex;
             align-items: center;
             gap: 1rem;
@@ -268,19 +274,24 @@
             border: 1px solid var(--border-color);
         }
 
-        .time-range label, .slot-duration label, .break-time label {
+        .time-range label,
+        .slot-duration label,
+        .break-time label {
             min-width: 150px;
             font-weight: 500;
             color: var(--text-color);
         }
 
-        .time-inputs, .break-inputs {
+        .time-inputs,
+        .break-inputs {
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        .time-inputs input, .break-inputs input, .slot-duration select {
+        .time-inputs input,
+        .break-inputs input,
+        .slot-duration select {
             padding: 0.75rem;
             border: 1px solid var(--border-color);
             border-radius: 8px;
@@ -289,7 +300,9 @@
             transition: all 0.3s ease;
         }
 
-        .time-inputs input:focus, .break-inputs input:focus, .slot-duration select:focus {
+        .time-inputs input:focus,
+        .break-inputs input:focus,
+        .slot-duration select:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -675,6 +688,7 @@
                 transform: translateX(100%);
                 opacity: 0;
             }
+
             to {
                 transform: translateX(0);
                 opacity: 1;
@@ -689,7 +703,10 @@
         }
 
         @media (max-width: 768px) {
-            .time-range, .slot-duration, .break-time {
+
+            .time-range,
+            .slot-duration,
+            .break-time {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 0.5rem;
@@ -719,6 +736,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -743,9 +761,10 @@
         <div id="weeklyTab" class="tab-content active">
             <div class="tab-pane-header">
                 <h3>Set Your Default Weekly Availability</h3>
-                <p>Define your recurring weekly hours. Create groups for different schedules (e.g., one for weekdays, another for weekends).</p>
+                <p>Define your recurring weekly hours. Create groups for different schedules (e.g., one for weekdays,
+                    another for weekends).</p>
             </div>
-            
+
             <div id="schedule-groups-container">
             </div>
 
@@ -754,7 +773,7 @@
                     <i class="fas fa-plus"></i> Add Another Schedule Group
                 </button>
             </div>
-            
+
             <div class="page-footer">
                 <button class="btn btn-primary" onclick="saveWeeklySchedule(this)">
                     <span class="btn-text">Save Weekly Schedule</span>
@@ -769,7 +788,8 @@
         <div id="calendarTab" class="tab-content">
             <div class="tab-pane-header">
                 <h3>Manage Specific Date Availability</h3>
-                <p>Click a date to view and override its schedule. Use <strong>Shift + Click</strong> to select a date range for bulk actions.</p>
+                <p>Click a date to view and override its schedule. Use <strong>Shift + Click</strong> to select a date
+                    range for bulk actions.</p>
             </div>
             <div class="calendar-override-container">
                 <div class="calendar-view">
@@ -783,7 +803,13 @@
                         </button>
                     </div>
                     <div class="calendar-grid-header">
-                        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                        <div>Sun</div>
+                        <div>Mon</div>
+                        <div>Tue</div>
+                        <div>Wed</div>
+                        <div>Thu</div>
+                        <div>Fri</div>
+                        <div>Sat</div>
                     </div>
                     <div class="calendar-grid" id="calendarGrid">
                     </div>
@@ -795,8 +821,10 @@
                         <div class="day-actions">
                             <span>Day Status:</span>
                             <div class="btn-group">
-                                <button id="dayAvailableBtn" class="btn-toggle-day" onclick="setDayStatus(true)">Available</button>
-                                <button id="dayUnavailableBtn" class="btn-toggle-day" onclick="setDayStatus(false)">Unavailable</button>
+                                <button id="dayAvailableBtn" class="btn-toggle-day"
+                                    onclick="setDayStatus(true)">Available</button>
+                                <button id="dayUnavailableBtn" class="btn-toggle-day"
+                                    onclick="setDayStatus(false)">Unavailable</button>
                             </div>
                         </div>
                         <div id="timeSlotsForDay" class="time-slots-grid">
@@ -891,396 +919,408 @@
 </template>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    loadCurrentSchedule().then(() => {
-        if (Object.keys(weeklySchedule).length === 0) {
-            addScheduleGroup(); // Add one default group if schedule is empty
+    document.addEventListener('DOMContentLoaded', function () {
+        loadCurrentSchedule().then(() => {
+            if (Object.keys(weeklySchedule).length === 0) {
+                addScheduleGroup(); // Add one default group if schedule is empty
+            }
+            renderCalendar();
+        });
+    });
+
+    // --- STATE MANAGEMENT ---
+    let currentTab = 'weekly';
+    let weeklySchedule = {};
+    let calendarDate = new Date();
+    let selectedDate = null;
+    let dateRange = { start: null, end: null };
+
+    // --- CORE API CALLS ---
+    async function loadCurrentSchedule() {
+        try {
+            const response = await fetch('/api/doctor/schedule/current');
+            const data = await response.json();
+            if (data.success && data.schedule) {
+                weeklySchedule = data.schedule;
+                populateWeeklyScheduleForm();
+            }
+        } catch (error) {
+            showToast('Error loading current schedule.', 'error');
+        }
+    }
+
+    async function apiSaveWeeklySchedule(scheduleData) {
+        const response = await fetch('/api/doctor/schedule/weekly', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(scheduleData)
+        });
+        return await response.json();
+    }
+
+    async function apiSaveDailyOverride(date, slots, isAvailable) {
+        const response = await fetch('/api/doctor/schedule/daily', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ date: date, timeSlots: slots, isAvailable: isAvailable })
+        });
+        return await response.json();
+    }
+
+    async function apiSaveBulkUpdate(startDate, endDate, action) {
+        // This is a new endpoint you'll need to create on your backend
+        const response = await fetch('/api/doctor/schedule/bulk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ startDate, endDate, action })
+        });
+        return await response.json();
+    }
+
+    // --- TAB SWITCHING ---
+    function switchTab(tabName) {
+        currentTab = tabName;
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`.tab-btn[onclick="switchTab('${tabName}')"]`).classList.add('active');
+
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById(tabName + 'Tab').classList.add('active');
+    }
+
+    // --- WEEKLY SCHEDULE LOGIC ---
+    function addScheduleGroup() {
+        const template = document.getElementById('schedule-group-template');
+        const container = document.getElementById('schedule-groups-container');
+        container.appendChild(template.content.cloneNode(true));
+    }
+
+    function populateWeeklyScheduleForm() {
+        const container = document.getElementById('schedule-groups-container');
+        container.innerHTML = '';
+        const dayToGroupMap = {};
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+        days.forEach(day => {
+            if (weeklySchedule[day] && weeklySchedule[day].active) {
+                const scheduleKey = JSON.stringify(weeklySchedule[day]);
+                if (!dayToGroupMap[scheduleKey]) {
+                    dayToGroupMap[scheduleKey] = [];
+                }
+                dayToGroupMap[scheduleKey].push(day);
+            }
+        });
+
+        if (Object.keys(dayToGroupMap).length === 0) {
+            addScheduleGroup();
+            return;
+        }
+
+        for (const [key, groupDays] of Object.entries(dayToGroupMap)) {
+            addScheduleGroup();
+            const newGroup = container.lastElementChild;
+            const schedule = JSON.parse(key);
+
+            groupDays.forEach(day => {
+                newGroup.querySelector(`[data-day="${day}"]`).checked = true;
+            });
+
+            newGroup.querySelector('.start-time').value = schedule.startTime;
+            newGroup.querySelector('.end-time').value = schedule.endTime;
+            newGroup.querySelector('.duration').value = schedule.duration;
+            newGroup.querySelector('.break-start').value = schedule.breakStart;
+            newGroup.querySelector('.break-end').value = schedule.breakEnd;
+        }
+    }
+
+    async function saveWeeklySchedule(button) {
+        toggleButtonLoading(button, true);
+        const newSchedule = {};
+        const groups = document.querySelectorAll('.schedule-group');
+        let hasError = false;
+
+        groups.forEach(group => {
+            const scheduleData = {
+                active: true,
+                startTime: group.querySelector('.start-time').value,
+                endTime: group.querySelector('.end-time').value,
+                duration: parseInt(group.querySelector('.duration').value),
+                breakStart: group.querySelector('.break-start').value,
+                breakEnd: group.querySelector('.break-end').value,
+            };
+
+            group.querySelectorAll('.day-selector input:checked').forEach(checkbox => {
+                const day = checkbox.dataset.day;
+                if (newSchedule[day]) {
+                    hasError = true;
+                }
+                newSchedule[day] = scheduleData;
+            });
+        });
+
+        if (hasError) {
+            showToast('A day cannot be in multiple schedule groups.', 'error');
+            toggleButtonLoading(button, false);
+            return;
+        }
+
+        const result = await apiSaveWeeklySchedule(newSchedule);
+        if (result.success) {
+            weeklySchedule = newSchedule;
+            showToast('Weekly schedule saved successfully!', 'success');
+        } else {
+            showToast(result.error || 'Failed to save weekly schedule.', 'error');
+        }
+        toggleButtonLoading(button, false);
+    }
+
+
+    // --- CALENDAR & OVERRIDES LOGIC ---
+    function changeMonth(offset) {
+        calendarDate.setMonth(calendarDate.getMonth() + offset);
+        renderCalendar();
+    }
+
+    function renderCalendar() {
+        const grid = document.getElementById('calendarGrid');
+        grid.innerHTML = '';
+        document.getElementById('currentMonthYear').textContent = calendarDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+        const year = calendarDate.getFullYear();
+        const month = calendarDate.getMonth();
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const startDate = new Date(firstDay);
+        startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+        for (let i = 0; i < 42; i++) {
+            const day = new Date(startDate);
+            day.setDate(startDate.getDate() + i);
+            const dayEl = document.createElement('div');
+            dayEl.className = 'calendar-day';
+
+            const dayNumber = document.createElement('div');
+            dayNumber.className = 'day-number';
+            dayNumber.textContent = day.getDate();
+            dayEl.appendChild(dayNumber);
+
+            if (day.getMonth() !== month) dayEl.classList.add('other-month');
+
+            const today = new Date();
+            if (day.toDateString() === today.toDateString()) dayEl.classList.add('today');
+
+            if (selectedDate && day.toDateString() === selectedDate.toDateString()) dayEl.classList.add('selected');
+
+            // Date range highlighting
+            if (dateRange.start && dateRange.end) {
+                const start = new Date(Math.min(dateRange.start, dateRange.end));
+                const end = new Date(Math.max(dateRange.start, dateRange.end));
+                if (day >= start && day <= end) {
+                    dayEl.classList.add('in-range');
+                    if (day.getTime() === start.getTime()) dayEl.classList.add('range-start');
+                    if (day.getTime() === end.getTime()) dayEl.classList.add('range-end');
+                }
+            }
+
+            dayEl.addEventListener('click', (e) => handleDayClick(day, e.shiftKey));
+            grid.appendChild(dayEl);
+        }
+    }
+
+    function handleDayClick(date, isShiftKey) {
+        if (isShiftKey && selectedDate) {
+            const selectedTime = selectedDate.getTime();
+            const clickedTime = date.getTime();
+            dateRange.start = new Date(Math.min(selectedTime, clickedTime));
+            dateRange.end = new Date(Math.max(selectedTime, clickedTime));
+            showBulkActionView();
+        } else {
+            selectedDate = date;
+            dateRange = { start: null, end: null };
+            showSingleDayView();
+            loadScheduleForDate(date);
         }
         renderCalendar();
-    });
-});
-
-// --- STATE MANAGEMENT ---
-let currentTab = 'weekly';
-let weeklySchedule = {};
-let calendarDate = new Date();
-let selectedDate = null;
-let dateRange = { start: null, end: null };
-
-// --- CORE API CALLS ---
-async function loadCurrentSchedule() {
-    try {
-        const response = await fetch('/api/doctor/schedule/current');
-        const data = await response.json();
-        if (data.success && data.schedule) {
-            weeklySchedule = data.schedule;
-            populateWeeklyScheduleForm();
-        }
-    } catch (error) {
-        showToast('Error loading current schedule.', 'error');
-    }
-}
-
-async function apiSaveWeeklySchedule(scheduleData) {
-    const response = await fetch('/api/doctor/schedule/weekly', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(scheduleData)
-    });
-    return await response.json();
-}
-
-async function apiSaveDailyOverride(date, slots, isAvailable) {
-     const response = await fetch('/api/doctor/schedule/daily', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: date, timeSlots: slots, isAvailable: isAvailable })
-    });
-    return await response.json();
-}
-
-async function apiSaveBulkUpdate(startDate, endDate, action) {
-    // This is a new endpoint you'll need to create on your backend
-    const response = await fetch('/api/doctor/schedule/bulk', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ startDate, endDate, action })
-    });
-    return await response.json();
-}
-
-// --- TAB SWITCHING ---
-function switchTab(tabName) {
-    currentTab = tabName;
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`.tab-btn[onclick="switchTab('${tabName}')"]`).classList.add('active');
-    
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    document.getElementById(tabName + 'Tab').classList.add('active');
-}
-
-// --- WEEKLY SCHEDULE LOGIC ---
-function addScheduleGroup() {
-    const template = document.getElementById('schedule-group-template');
-    const container = document.getElementById('schedule-groups-container');
-    container.appendChild(template.content.cloneNode(true));
-}
-
-function populateWeeklyScheduleForm() {
-    const container = document.getElementById('schedule-groups-container');
-    container.innerHTML = '';
-    const dayToGroupMap = {};
-    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-
-    days.forEach(day => {
-        if (weeklySchedule[day] && weeklySchedule[day].active) {
-            const scheduleKey = JSON.stringify(weeklySchedule[day]);
-            if (!dayToGroupMap[scheduleKey]) {
-                dayToGroupMap[scheduleKey] = [];
-            }
-            dayToGroupMap[scheduleKey].push(day);
-        }
-    });
-
-    if (Object.keys(dayToGroupMap).length === 0) {
-        addScheduleGroup();
-        return;
     }
 
-    for (const [key, groupDays] of Object.entries(dayToGroupMap)) {
-        addScheduleGroup();
-        const newGroup = container.lastElementChild;
-        const schedule = JSON.parse(key);
+    async function loadScheduleForDate(date) {
+        const slotsContainer = document.getElementById('timeSlotsForDay');
+        slotsContainer.innerHTML = `<div class="placeholder"><i class="fas fa-spinner fa-spin"></i> Loading schedule...</div>`;
+        document.querySelector('#singleDayView .btn-primary').disabled = true;
 
-        groupDays.forEach(day => {
-            newGroup.querySelector(`[data-day="${day}"]`).checked = true;
-        });
+        const dateString = toYYYYMMDD(date);
+        const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+        const defaultSchedule = weeklySchedule[dayOfWeek];
 
-        newGroup.querySelector('.start-time').value = schedule.startTime;
-        newGroup.querySelector('.end-time').value = schedule.endTime;
-        newGroup.querySelector('.duration').value = schedule.duration;
-        newGroup.querySelector('.break-start').value = schedule.breakStart;
-        newGroup.querySelector('.break-end').value = schedule.breakEnd;
-    }
-}
-
-async function saveWeeklySchedule(button) {
-    toggleButtonLoading(button, true);
-    const newSchedule = {};
-    const groups = document.querySelectorAll('.schedule-group');
-    let hasError = false;
-
-    groups.forEach(group => {
-        const scheduleData = {
-            active: true,
-            startTime: group.querySelector('.start-time').value,
-            endTime: group.querySelector('.end-time').value,
-            duration: parseInt(group.querySelector('.duration').value),
-            breakStart: group.querySelector('.break-start').value,
-            breakEnd: group.querySelector('.break-end').value,
-        };
-
-        group.querySelectorAll('.day-selector input:checked').forEach(checkbox => {
-            const day = checkbox.dataset.day;
-            if (newSchedule[day]) {
-                hasError = true;
-            }
-            newSchedule[day] = scheduleData;
-        });
-    });
-
-    if (hasError) {
-        showToast('A day cannot be in multiple schedule groups.', 'error');
-        toggleButtonLoading(button, false);
-        return;
-    }
-
-    const result = await apiSaveWeeklySchedule(newSchedule);
-    if (result.success) {
-        weeklySchedule = newSchedule;
-        showToast('Weekly schedule saved successfully!', 'success');
-    } else {
-        showToast(result.error || 'Failed to save weekly schedule.', 'error');
-    }
-    toggleButtonLoading(button, false);
-}
-
-
-// --- CALENDAR & OVERRIDES LOGIC ---
-function changeMonth(offset) {
-    calendarDate.setMonth(calendarDate.getMonth() + offset);
-    renderCalendar();
-}
-
-function renderCalendar() {
-    const grid = document.getElementById('calendarGrid');
-    grid.innerHTML = '';
-    document.getElementById('currentMonthYear').textContent = calendarDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-
-    const year = calendarDate.getFullYear();
-    const month = calendarDate.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const startDate = new Date(firstDay);
-    startDate.setDate(startDate.getDate() - firstDay.getDay());
-
-    for (let i = 0; i < 42; i++) {
-        const day = new Date(startDate);
-        day.setDate(startDate.getDate() + i);
-        const dayEl = document.createElement('div');
-        dayEl.className = 'calendar-day';
-        
-        const dayNumber = document.createElement('div');
-        dayNumber.className = 'day-number';
-        dayNumber.textContent = day.getDate();
-        dayEl.appendChild(dayNumber);
-        
-        if (day.getMonth() !== month) dayEl.classList.add('other-month');
-
-        const today = new Date();
-        if (day.toDateString() === today.toDateString()) dayEl.classList.add('today');
-
-        if (selectedDate && day.toDateString() === selectedDate.toDateString()) dayEl.classList.add('selected');
-        
-        // Date range highlighting
-        if(dateRange.start && dateRange.end) {
-            const start = new Date(Math.min(dateRange.start, dateRange.end));
-            const end = new Date(Math.max(dateRange.start, dateRange.end));
-            if(day >= start && day <= end) {
-                dayEl.classList.add('in-range');
-                if(day.getTime() === start.getTime()) dayEl.classList.add('range-start');
-                if(day.getTime() === end.getTime()) dayEl.classList.add('range-end');
-            }
-        }
-
-        dayEl.addEventListener('click', (e) => handleDayClick(day, e.shiftKey));
-        grid.appendChild(dayEl);
-    }
-}
-
-function handleDayClick(date, isShiftKey) {
-    if (isShiftKey && selectedDate) {
-        const selectedTime = selectedDate.getTime();
-        const clickedTime = date.getTime();
-        dateRange.start = new Date(Math.min(selectedTime, clickedTime));
-        dateRange.end = new Date(Math.max(selectedTime, clickedTime));
-        showBulkActionView();
-    } else {
-        selectedDate = date;
-        dateRange = { start: null, end: null };
-        showSingleDayView();
-        loadScheduleForDate(date);
-    }
-    renderCalendar();
-}
-
-async function loadScheduleForDate(date) {
-    const slotsContainer = document.getElementById('timeSlotsForDay');
-    slotsContainer.innerHTML = `<div class="placeholder"><i class="fas fa-spinner fa-spin"></i> Loading schedule...</div>`;
-    document.querySelector('#singleDayView .btn-primary').disabled = true;
-
-    const dateString = toYYYYMMDD(date);
-    const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-    const defaultSchedule = weeklySchedule[dayOfWeek];
-
-    if (!defaultSchedule || !defaultSchedule.active) {
-        renderDayAsUnavailable(slotsContainer);
-        setDayStatusUI(false);
-        return;
-    }
-    
-    setDayStatusUI(true);
-
-    const generatedSlots = generateTimeSlots(defaultSchedule);
-    
-    try {
-        const response = await fetch(`/api/doctor/schedule/daily?date=${dateString}`);
-        const data = await response.json();
-        const override = data.schedule || {};
-
-        if (override.isAvailable === false) {
+        if (!defaultSchedule || !defaultSchedule.active) {
             renderDayAsUnavailable(slotsContainer);
             setDayStatusUI(false);
             return;
         }
 
-        slotsContainer.innerHTML = '';
-        generatedSlots.forEach(slot => {
-            const isAvailable = override.timeSlots ? override.timeSlots.includes(slot) : true;
-            const slotEl = document.createElement('div');
-            slotEl.className = 'time-slot-item';
-            slotEl.classList.add(isAvailable ? 'available' : 'unavailable');
-            slotEl.textContent = formatTime(slot);
-            slotEl.dataset.time = slot;
-            slotEl.onclick = () => toggleTimeSlot(slotEl);
-            slotsContainer.appendChild(slotEl);
-        });
-        document.querySelector('#singleDayView .btn-primary').disabled = false;
+        setDayStatusUI(true);
 
-    } catch (error) {
-        showToast('Could not load daily schedule.', 'error');
-        slotsContainer.innerHTML = `<div class="placeholder">Error loading schedule.</div>`;
-    }
-}
+        const generatedSlots = generateTimeSlots(defaultSchedule);
 
-function generateTimeSlots({ startTime, endTime, duration, breakStart, breakEnd }) {
-    const slots = [];
-    let current = timeToMinutes(startTime);
-    const end = timeToMinutes(endTime);
-    const breakS = timeToMinutes(breakStart);
-    const breakE = timeToMinutes(breakEnd);
+        try {
+            const response = await fetch(`/api/doctor/schedule/daily?date=${dateString}`);
+            const data = await response.json();
+            const override = data.schedule;
+            console.log(override)
+            console.log(override.time_slots)
 
-    while (current + duration <= end) {
-        if (!(current >= breakS && current < breakE)) {
-             slots.push(minutesToTime(current));
+            if (override.isAvailable === false) {
+                renderDayAsUnavailable(slotsContainer);
+                setDayStatusUI(false);
+                return;
+            }
+
+            slotsContainer.innerHTML = '';
+            generatedSlots.forEach(slot => {
+                const isAvailable = override.time_slots ? override.time_slots.includes(slot) : true;
+                console.log(override.time_slots);
+                console.log(slot);
+                const slotEl = document.createElement('div');
+                slotEl.className = 'time-slot-item';
+                slotEl.classList.add(isAvailable ? 'available' : 'unavailable');
+                slotEl.textContent = formatTime(slot);
+                slotEl.dataset.time = slot;
+                slotEl.onclick = () => toggleTimeSlot(slotEl);
+                slotsContainer.appendChild(slotEl);
+            });
+            document.querySelector('#singleDayView .btn-primary').disabled = false;
+
+        } catch (error) {
+            showToast('Could not load daily schedule.', 'error');
+            slotsContainer.innerHTML = `<div class="placeholder">Error loading schedule.</div>`;
         }
-        current += duration;
-    }
-    return slots;
-}
-
-function setDayStatus(isAvailable) {
-    setDayStatusUI(isAvailable);
-    const slotsContainer = document.getElementById('timeSlotsForDay');
-    if (isAvailable) {
-        loadScheduleForDate(selectedDate);
-    } else {
-        renderDayAsUnavailable(slotsContainer);
-    }
-}
-
-async function saveDateOverride(button) {
-    if (!selectedDate) return;
-    toggleButtonLoading(button, true);
-
-    const isAvailable = document.getElementById('dayAvailableBtn').classList.contains('active');
-    let availableSlots = [];
-
-    if (isAvailable) {
-        document.querySelectorAll('#timeSlotsForDay .time-slot-item.available').forEach(slot => {
-            availableSlots.push(slot.dataset.time);
-        });
     }
 
-    const result = await apiSaveDailyOverride(toYYYYMMDD(selectedDate), availableSlots, isAvailable);
+    function generateTimeSlots({ startTime, endTime, duration, breakStart, breakEnd }) {
+        const slots = [];
+        let current = timeToMinutes(startTime);
+        const end = timeToMinutes(endTime);
+        const breakS = timeToMinutes(breakStart);
+        const breakE = timeToMinutes(breakEnd);
 
-    if (result.success) {
-        showToast('Override saved successfully!', 'success');
-    } else {
-        showToast(result.error || 'Failed to save override.', 'error');
+        while (current + duration <= end) {
+            if (!(current >= breakS && current < breakE)) {
+                slots.push(minutesToTime(current));
+            }
+            current += duration;
+        }
+        return slots;
     }
-    toggleButtonLoading(button, false);
-}
 
-async function applyBulkAction(action, button) {
-    if (!dateRange.start || !dateRange.end) return;
-    toggleButtonLoading(button, true);
+    function setDayStatus(isAvailable) {
+        setDayStatusUI(isAvailable);
+        const slotsContainer = document.getElementById('timeSlotsForDay');
+        if (isAvailable) {
+            loadScheduleForDate(selectedDate);
+        } else {
+            renderDayAsUnavailable(slotsContainer);
+        }
+    }
 
-    const result = await apiSaveBulkUpdate(toYYYYMMDD(dateRange.start), toYYYYMMDD(dateRange.end), action);
-    
-    if (result.success) {
-        showToast(`Bulk action applied successfully!`, 'success');
-    } else {
-        showToast(result.error || 'Failed to apply bulk action.', 'error');
-    }
-    toggleButtonLoading(button, false);
-}
+    async function saveDateOverride(button) {
+        if (!selectedDate) return;
+        toggleButtonLoading(button, true);
 
-// --- UI & VIEW MANAGEMENT ---
-function showSingleDayView() {
-    document.getElementById('singleDayView').style.display = 'block';
-    document.getElementById('bulkActionView').style.display = 'none';
-    if(selectedDate) {
-        document.getElementById('selectedDateText').textContent = selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    }
-}
-function showBulkActionView() {
-    document.getElementById('singleDayView').style.display = 'none';
-    document.getElementById('bulkActionView').style.display = 'block';
-    if(dateRange.start && dateRange.end) {
-        document.getElementById('bulkStartDateText').textContent = dateRange.start.toLocaleDateString();
-        document.getElementById('bulkEndDateText').textContent = dateRange.end.toLocaleDateString();
-    }
-}
-function toggleTimeSlot(element) {
-    element.classList.toggle('available');
-    element.classList.toggle('unavailable');
-}
-function setDayStatusUI(isAvailable) {
-    document.getElementById('dayAvailableBtn').classList.toggle('active', isAvailable);
-    document.getElementById('dayUnavailableBtn').classList.toggle('active', !isAvailable);
-}
-function renderDayAsUnavailable(container) {
-    container.innerHTML = `<div class="placeholder">This day is marked as unavailable.</div>`;
-}
-function showToast(message, type = 'success') {
-    const container = document.getElementById('toast-container');
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.textContent = message;
-    container.appendChild(toast);
-    setTimeout(() => {
-        toast.remove();
-    }, 4000);
-}
-function toggleButtonLoading(button, isLoading) {
-    const text = button.querySelector('.btn-text');
-    const loader = button.querySelector('.btn-loader');
-    if (isLoading) {
-        text.style.display = 'none';
-        loader.style.display = 'inline-flex';
-        button.disabled = true;
-    } else {
-        text.style.display = 'inline-flex';
-        loader.style.display = 'none';
-        button.disabled = false;
-    }
-}
+        const isAvailable = document.getElementById('dayAvailableBtn').classList.contains('active');
+        let availableSlots = [];
 
-// --- UTILITY FUNCTIONS ---
-function toYYYYMMDD(date) { return date.toISOString().split('T')[0]; }
-function timeToMinutes(time) { const [h, m] = time.split(':'); return (+h) * 60 + (+m); }
-function minutesToTime(minutes) { const h = Math.floor(minutes / 60).toString().padStart(2, '0'); const m = (minutes % 60).toString().padStart(2, '0'); return `${h}:${m}`; }
-function formatTime(time) { return new Date(`1970-01-01T${time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }); }
+        if (isAvailable) {
+            document.querySelectorAll('#timeSlotsForDay .time-slot-item.available').forEach(slot => {
+                availableSlots.push(slot.dataset.time);
+            });
+        }
+
+        const result = await apiSaveDailyOverride(toYYYYMMDD(selectedDate), availableSlots, isAvailable);
+
+        if (result.success) {
+            showToast('Override saved successfully!', 'success');
+        } else {
+            showToast(result.error || 'Failed to save override.', 'error');
+        }
+        toggleButtonLoading(button, false);
+    }
+
+    async function applyBulkAction(action, button) {
+        if (!dateRange.start || !dateRange.end) return;
+        toggleButtonLoading(button, true);
+
+        const result = await apiSaveBulkUpdate(toYYYYMMDD(dateRange.start), toYYYYMMDD(dateRange.end), action);
+
+        if (result.success) {
+            showToast(`Bulk action applied successfully!`, 'success');
+        } else {
+            showToast(result.error || 'Failed to apply bulk action.', 'error');
+        }
+        toggleButtonLoading(button, false);
+    }
+
+    // --- UI & VIEW MANAGEMENT ---
+    function showSingleDayView() {
+        document.getElementById('singleDayView').style.display = 'block';
+        document.getElementById('bulkActionView').style.display = 'none';
+        if (selectedDate) {
+            document.getElementById('selectedDateText').textContent = selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }
+    }
+
+    function showBulkActionView() {
+        document.getElementById('singleDayView').style.display = 'none';
+        document.getElementById('bulkActionView').style.display = 'block';
+        if (dateRange.start && dateRange.end) {
+            document.getElementById('bulkStartDateText').textContent = dateRange.start.toLocaleDateString();
+            document.getElementById('bulkEndDateText').textContent = dateRange.end.toLocaleDateString();
+        }
+    }
+
+    function toggleTimeSlot(element) {
+        element.classList.toggle('available');
+        element.classList.toggle('unavailable');
+    }
+
+    function setDayStatusUI(isAvailable) {
+        document.getElementById('dayAvailableBtn').classList.toggle('active', isAvailable);
+        document.getElementById('dayUnavailableBtn').classList.toggle('active', !isAvailable);
+    }
+
+    function renderDayAsUnavailable(container) {
+        container.innerHTML = `<div class="placeholder">This day is marked as unavailable.</div>`;
+    }
+
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.remove();
+        }, 4000);
+    }
+
+    function toggleButtonLoading(button, isLoading) {
+        const text = button.querySelector('.btn-text');
+        const loader = button.querySelector('.btn-loader');
+        if (isLoading) {
+            text.style.display = 'none';
+            loader.style.display = 'inline-flex';
+            button.disabled = true;
+        } else {
+            text.style.display = 'inline-flex';
+            loader.style.display = 'none';
+            button.disabled = false;
+        }
+    }
+
+    // --- UTILITY FUNCTIONS ---
+    function toYYYYMMDD(date) {
+        return date.toLocaleDateString('en-CA'); // YYYY-MM-DD in local timezone
+    }
+    function timeToMinutes(time) { const [h, m] = time.split(':'); return (+h) * 60 + (+m); }
+    function minutesToTime(minutes) { const h = Math.floor(minutes / 60).toString().padStart(2, '0'); const m = (minutes % 60).toString().padStart(2, '0'); return `${h}:${m}`; }
+    function formatTime(time) { return new Date(`1970-01-01T${time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }); }
 </script>
 {% endblock %}

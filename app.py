@@ -12,8 +12,8 @@ from flask import flash
 import pandas as pd
 import shap
 import uuid
-from datetime import datetime, timedelta
-from tensorflow.keras.models import load_model
+from datetime import datetime, timedelta, timezone
+from keras.models import load_model
 from PIL import Image
 import io
 from ml_utils import generate_shap_plot_base64, generate_insights
@@ -407,6 +407,10 @@ def _send_prediction_pdf_task(prediction, recipient_email):
 
 def enqueue_send_prediction_pdf(prediction, recipient_email):
     Thread(target=_send_prediction_pdf_task, args=(prediction, recipient_email), daemon=True).start()
+
+def generate_meeting_link():
+    room_name = f"healthify-{uuid.uuid4().hex}"
+    return f"https://meet.jit.si/{room_name}"
 
 class User(UserMixin):
     def __init__(self, user_data):
@@ -1073,6 +1077,8 @@ def book_appointment():
 
     appointment_doc = {
         'user_id': current_user.id,
+        'patient_name': current_user.username,     # add this
+        'patient_email': current_user.email,
         'doctor_id': ObjectId(doctor_id),
         'specialty': specialty_key,
         'doctor_name': doctor['full_name'],
@@ -1108,7 +1114,41 @@ def book_appointment():
 def appointments():
     items = list(mongo.db.appointments.find({'user_id': current_user.id}).sort('start_at', -1))
     specialties = get_specialties_from_db()
-    return render_template('dashboard/appointments.html', appointments=items, specialties=specialties)
+    return render_template('dashboard/appointments.html', appointments=items, specialties=specialties, now=datetime.utcnow())
+
+
+@app.route('/feedback/<appointment_id>', methods=['GET', 'POST'])
+def feedback(appointment_id):
+    appointment = mongo.db.appointments.find_one({"_id": ObjectId(appointment_id)})
+    if not appointment:
+        return render_template("feedback_message.html", message="Invalid appointment", type="info")
+
+    existing = mongo.db.feedback.find_one({"appointment_id": ObjectId(appointment_id)})
+    if existing:
+        return render_template("feedback_message.html", message="Feedback already submitted for this appointment.", type="info")
+
+
+    if request.method == 'POST':
+        rating = int(request.form.get('rating', 0))
+        comments = request.form.get('comments', '')
+
+        mongo.db.feedback.insert_one({
+            "appointment_id": ObjectId(appointment_id),
+            "patient_email": appointment['patient_email'],
+            "doctor_email": appointment['doctor_email'],
+            "rating": rating,
+            "comments": comments,
+            "created_at": datetime.now(timezone.utc)
+        })
+
+        mongo.db.appointments.update_one(
+            {"_id": ObjectId(appointment_id)},
+            {"$set": {"feedback_given": True}}
+        )
+
+        return render_template("feedback_message.html", message="Thank you for your feedback!", type="info")
+
+    return render_template("feedback.html", appointment=appointment)
 
 
 # --- Doctor Portal (MVP) ---
@@ -1171,14 +1211,12 @@ def doctor_dashboard():
 @app.route('/doctor/schedule')
 @doctor_login_required
 def schedule_managment():
-    """Schedule Management Page"""
     return render_template('Doctor/schedule_managment.html')
 
 
 @app.route('/doctor/patients')
 @doctor_login_required
 def doctor_patients():
-    """Patient Directory - List all patients with search and filter"""
     doctor_email = session.get('doctor_email')
     if not doctor_email:
         return redirect(url_for('doctor_login'))
@@ -1248,6 +1286,12 @@ def doctor_patients():
     # Get filter options
     all_specialties = list(mongo.db.appointments.distinct('specialty', {'doctor_email': doctor_email}))
     all_statuses = list(mongo.db.appointments.distinct('status', {'doctor_email': doctor_email}))
+
+    # Count patients by status
+    completed_count = sum(1 for p in patients if "completed" in p["statuses"])
+    confirmed_count = sum(1 for p in patients if "confirmed" in p["statuses"])
+    active_count = sum(1 for p in patients if "active" in p["statuses"])
+
     
     return render_template('Doctor/patients.html', 
                          patients=patients,
@@ -1259,13 +1303,17 @@ def doctor_patients():
                          total_patients=total_patients,
                          specialties=get_specialties_from_db(),
                          all_specialties=all_specialties,
-                         all_statuses=all_statuses)
+                         all_statuses=all_statuses,
+                         completed_count=completed_count,
+                         confirmed_count=confirmed_count,
+                         active_count=active_count
+                         )
 
 
 @app.route('/doctor/patient/<patient_email>')
 @doctor_login_required
 def doctor_patient_profile(patient_email):
-    """Patient Profile - Detailed patient information and history"""
+    
     doctor_email = session.get('doctor_email')
     if not doctor_email:
         return redirect(url_for('doctor_login'))
@@ -1315,7 +1363,6 @@ def doctor_patient_profile(patient_email):
 @app.route('/doctor/appointment/<appointment_id>')
 @doctor_login_required
 def doctor_appointment_detail(appointment_id):
-    """Enhanced Appointment Details - Better appointment management"""
     doctor_email = session.get('doctor_email')
     if not doctor_email:
         return redirect(url_for('doctor_login'))
@@ -1338,16 +1385,10 @@ def doctor_appointment_detail(appointment_id):
             '_id': {'$ne': ObjectId(appointment_id)}
         }).sort('start_at', -1).limit(5))
         
-        # Get patient's medical history (if available)
-        patient_history = mongo.db.patient_history.find_one({
-            'patient_email': appointment.get('patient_email'),
-            'doctor_email': doctor_email
-        })
         
         return render_template('Doctor/appointment_detail.html',
                              appointment=appointment,
                              patient_appointments=patient_appointments,
-                             patient_history=patient_history,
                              specialties=get_specialties_from_db())
     
     except Exception as e:
@@ -1359,27 +1400,23 @@ def doctor_appointment_detail(appointment_id):
 @app.route('/doctor/appointment/<appointment_id>/update', methods=['POST'])
 @doctor_login_required
 def doctor_appointment_update(appointment_id):
-    """Update appointment details and add notes"""
+    
     doctor_email = session.get('doctor_email')
+    
     if not doctor_email:
         return jsonify({'success': False, 'message': 'Not authenticated'}), 401
     
     try:
         data = request.get_json()
-        status = data.get('status')
         notes = data.get('notes', '')
         diagnosis = data.get('diagnosis', '')
         prescription = data.get('prescription', '')
         
-        # Validate status
-        if status not in ['confirmed', 'active', 'completed', 'cancelled', 'no_show']:
-            return jsonify({'success': False, 'message': 'Invalid status'}), 400
         
         # Update appointment
         result = mongo.db.appointments.update_one(
             {'_id': ObjectId(appointment_id), 'doctor_email': doctor_email},
             {'$set': {
-                'status': status,
                 'doctor_notes': notes,
                 'diagnosis': diagnosis,
                 'prescription': prescription,
@@ -1396,11 +1433,166 @@ def doctor_appointment_update(appointment_id):
         print(f"Error updating appointment: {e}")
         return jsonify({'success': False, 'message': 'Failed to update appointment'}), 500
 
+@app.route('/doctor/appointment/<appointment_id>/start', methods=['POST'])
+@doctor_login_required
+def start_appointment(appointment_id):
+    doctor_email = session.get('doctor_email')
+    if not doctor_email:
+        return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+
+    try:
+        # Find appointment
+        appointment = mongo.db.appointments.find_one({
+            '_id': ObjectId(appointment_id),
+            'doctor_email': doctor_email
+        })
+
+        if not appointment:
+            return jsonify({'success': False, 'message': 'Appointment not found'}), 404
+
+        # Generate meeting link (custom internal link)
+        meeting_link = generate_meeting_link()
+
+        # Update status -> active + save meeting link
+        result = mongo.db.appointments.update_one(
+            {'_id': ObjectId(appointment_id)},
+            {'$set': {
+                'status': 'active',
+                'meeting_link': meeting_link,
+                'started_at': datetime.utcnow(),
+                'updated_at': datetime.utcnow()
+            }}
+        )
+
+        if result.modified_count == 0:
+            return jsonify({'success': False, 'message': 'No changes applied'}), 400
+
+        # --- Send emails with meeting link ---
+        subject = f"Your Appointment Has Started - {appointment['specialty'].title()}"
+
+        body_patient = f"""
+        Dear {appointment['patient_name']},
+
+        Your appointment with {appointment['doctor_name']} has just started.
+
+        📅 Date: {appointment['start_at'].strftime('%B %d, %Y')}
+        ⏰ Time: {appointment['start_at'].strftime('%I:%M %p')} - {appointment['end_at'].strftime('%I:%M %p')}
+        🩺 Specialty: {appointment['specialty'].title()}
+
+        👉 Join Meeting: {meeting_link}
+
+        Notes: {appointment.get('notes', 'N/A')}
+
+        Regards,  
+        Healthify
+        """
+
+        body_doctor = f"""
+        Hello {appointment['doctor_name']},
+
+        You have started the appointment with patient {appointment['patient_name']}.
+
+        📅 Date: {appointment['start_at'].strftime('%B %d, %Y')}
+        ⏰ Time: {appointment['start_at'].strftime('%I:%M %p')} - {appointment['end_at'].strftime('%I:%M %p')}
+        👤 Patient Email: {appointment['patient_email']}
+
+        👉 Meeting Link (share if needed): {meeting_link}
+
+        Notes: {appointment.get('notes', 'N/A')}
+
+        Regards,  
+        Healthify
+        """
+
+        # Send to both
+        send_plain_email(appointment['patient_email'], subject, body_patient)
+        send_plain_email(appointment['doctor_email'], subject, body_doctor)
+
+        return jsonify({'success': True, 'message': 'Appointment started, meeting link sent', 'meeting_link': meeting_link})
+
+    except Exception as e:
+        print(f"Error starting appointment: {e}")
+        return jsonify({'success': False, 'message': 'Failed to start appointment'}), 500
+
+@app.route('/doctor/appointment/<appointment_id>/complete', methods=['POST'])
+@doctor_login_required
+def complete_appointment(appointment_id):
+    doctor_email = session.get('doctor_email')
+    if not doctor_email:
+        return jsonify({'success': False, 'message': 'Not authenticated'}), 401
+
+    try:
+        # Find appointment
+        appointment = mongo.db.appointments.find_one({
+            '_id': ObjectId(appointment_id),
+            'doctor_email': doctor_email
+        })
+
+        if not appointment:
+            return jsonify({'success': False, 'message': 'Appointment not found'}), 404
+
+        # Update status -> completed
+        result = mongo.db.appointments.update_one(
+            {'_id': ObjectId(appointment_id)},
+            {'$set': {
+                'status': 'completed',
+                'completed_at': datetime.utcnow(),
+                'updated_at': datetime.utcnow()
+            }}
+        )
+
+        if result.modified_count == 0:
+            return jsonify({'success': False, 'message': 'No changes applied'}), 400
+
+        # --- Send emails ---
+        subject = f"Appointment Completed - {appointment['specialty'].title()}"
+
+        feedback_link = f"{request.host_url}feedback/{appointment_id}"
+
+        body_patient = f"""
+        Dear {appointment['patient_name']},
+
+        Your appointment with {appointment['doctor_name']} has been marked as completed.
+
+        📅 Date: {appointment['start_at'].strftime('%B %d, %Y')}
+        ⏰ Time: {appointment['start_at'].strftime('%I:%M %p')} - {appointment['end_at'].strftime('%I:%M %p')}
+        🩺 Specialty: {appointment['specialty'].title()}
+
+        👉 Please take a moment to provide feedback: {feedback_link}
+
+        Your feedback helps us improve our services. 💙
+
+        Regards,
+        Healthify
+        """
+
+        body_doctor = f"""
+        Hello {appointment['doctor_name']},
+
+        You have successfully completed the appointment with patient {appointment['patient_name']}.
+
+        📅 Date: {appointment['start_at'].strftime('%B %d, %Y')}
+        ⏰ Time: {appointment['start_at'].strftime('%I:%M %p')} - {appointment['end_at'].strftime('%I:%M %p')}
+        👤 Patient Email: {appointment['patient_email']}
+
+        Regards,
+        Healthify
+        """
+
+        # Send to both
+        send_plain_email(appointment['patient_email'], subject, body_patient)
+        send_plain_email(appointment['doctor_email'], subject, body_doctor)
+
+        return jsonify({'success': True, 'message': 'Appointment completed, feedback link sent', 'feedback_link': feedback_link})
+
+    except Exception as e:
+        print(f"Error completing appointment: {e}")
+        return jsonify({'success': False, 'message': 'Failed to complete appointment'}), 500
+
 
 @app.route('/doctor/patient/<patient_email>/history', methods=['GET', 'POST'])
 @doctor_login_required
 def doctor_patient_history(patient_email):
-    """Manage patient medical history"""
     doctor_email = session.get('doctor_email')
     if not doctor_email:
         return redirect(url_for('doctor_login'))
@@ -1531,14 +1723,110 @@ def admin_logout():
     session.pop('admin_logged_in', None)
     return redirect(url_for('admin_login'))
 
+@app.route('/admin/feedback')
+@admin_login_required
+def admin_feedback():
+    feedback_items = list(mongo.db.feedback.find({}).sort("created_at", -1))
+
+    # Attach appointment info (start, end, started_at, completed_at)
+    for fb in feedback_items:
+        appointment = mongo.db.appointments.find_one({"_id": fb["appointment_id"]})
+        fb["appointment"] = appointment
+
+    return render_template('Admin/feedback.html', feedback=feedback_items)
+
+@app.route('/admin/appointments')
+@admin_login_required
+def admin_appointments():
+    search = request.args.get('search', '').strip()
+    status = request.args.get('status', 'all')
+
+    query = {}
+    if search:
+        try:
+            # If search looks like an ObjectId, search by appointment ID
+            query['_id'] = ObjectId(search)
+        except:
+            # Otherwise search patient/doctor
+            query['$or'] = [
+                {'patient_name': {'$regex': search, '$options': 'i'}},
+                {'patient_email': {'$regex': search, '$options': 'i'}},
+                {'doctor_name': {'$regex': search, '$options': 'i'}},
+                {'doctor_email': {'$regex': search, '$options': 'i'}}
+            ]
+
+    if status != 'all':
+        query['status'] = status
+
+    appointments = list(mongo.db.appointments.find(query).sort('start_at', -1))
+
+    return render_template(
+        'Admin/appointments.html',
+        appointments=appointments,
+        search=search,
+        status=status
+    )
 
 @app.route('/admin')
 @admin_login_required
 def admin_dashboard():
-    recent_appointments = list(mongo.db.appointments.find({}).sort('start_at', -1).limit(20))
-    # Get actual doctors from database
-    doctors = list(mongo.db.doctors.find({'status': 'active'}).sort('created_at', -1))
-    return render_template('Admin/dashboard.html', appointments=recent_appointments, doctors=doctors)
+    # --- Stats ---
+    total_appointments = mongo.db.appointments.count_documents({})
+    total_doctors = mongo.db.doctors.count_documents({'status': 'active'})
+    total_predictions = mongo.db.predictions.count_documents({})
+    total_feedback = mongo.db.feedback.count_documents({})
+
+    # --- Recent Appointments ---
+    recent_appointments = list(mongo.db.appointments.find({}).sort('start_at', -1).limit(5))
+
+    # --- Feedback ---
+    recent_feedback = list(mongo.db.feedback.find({}).sort('created_at', -1).limit(5))
+
+    # --- Appointments by Status ---
+    status_counts = {
+        'confirmed': mongo.db.appointments.count_documents({'status': 'confirmed'}),
+        'active': mongo.db.appointments.count_documents({'status': 'active'}),
+        'completed': mongo.db.appointments.count_documents({'status': 'completed'}),
+        'cancelled': mongo.db.appointments.count_documents({'status': {'$in': ['cancelled', 'no_show']}})
+    }
+
+    # --- Popular Specialty ---
+    pipeline = [
+        {"$group": {"_id": "$specialty", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 1}
+    ]
+    top_specialty = list(mongo.db.appointments.aggregate(pipeline))
+    most_popular_specialty = top_specialty[0] if top_specialty else None
+
+    # --- Average Feedback Rating ---
+    avg_rating_pipeline = [
+        {"$group": {"_id": None, "avg_rating": {"$avg": "$rating"}}}
+    ]
+    avg_rating_result = list(mongo.db.feedback.aggregate(avg_rating_pipeline))
+    avg_rating = round(avg_rating_result[0]['avg_rating'], 2) if avg_rating_result else None
+
+    # --- Average Appointment Duration ---
+    durations = []
+    for appt in mongo.db.appointments.find({"started_at": {"$exists": True}, "completed_at": {"$exists": True}}):
+        duration = (appt["completed_at"] - appt["started_at"]).total_seconds() / 60
+        durations.append(duration)
+    avg_duration = round(sum(durations) / len(durations), 1) if durations else None
+
+    return render_template(
+        'Admin/dashboard.html',
+        total_appointments=total_appointments,
+        total_doctors=total_doctors,
+        total_predictions=total_predictions,
+        total_feedback=total_feedback,
+        recent_appointments=recent_appointments,
+        recent_feedback=recent_feedback,
+        status_counts=status_counts,
+        most_popular_specialty=most_popular_specialty,
+        avg_rating=avg_rating,
+        avg_duration=avg_duration
+    )
+
 
 # --- Admin Doctor Management ---
 @app.route('/admin/doctors')
@@ -1750,7 +2038,7 @@ def get_current_schedule():
 @app.route('/api/doctor/schedule/weekly', methods=['POST'])
 @doctor_login_required
 def save_weekly_schedule():
-    """Save doctor's weekly schedule"""
+   
     try:
         doctor_email = session.get('doctor_email')
         if not doctor_email:
@@ -1778,14 +2066,14 @@ def save_weekly_schedule():
 @app.route('/api/doctor/schedule/daily', methods=['GET', 'POST'])
 @doctor_login_required
 def manage_daily_schedule():
-    """Get or save doctor's daily schedule override"""
     doctor_email = session.get('doctor_email')
     if not doctor_email:
         return jsonify({'error': 'Not authenticated'}), 401
 
     if request.method == 'GET':
-        # GET logic remains the same...
+        
         date = request.args.get('date')
+
         if not date:
             return jsonify({'error': 'Date required'}), 400
         
@@ -1798,7 +2086,6 @@ def manage_daily_schedule():
         
         return jsonify({
             'success': True,
-            # Return the full schedule object now, not just time_slots
             'schedule': schedule if schedule else {}
         })
     
@@ -1806,6 +2093,7 @@ def manage_daily_schedule():
         try:
             data = request.get_json()
             date = datetime.strptime(data['date'], '%Y-%m-%d')
+            date = datetime.combine(date.date(), datetime.min.time())
             time_slots = data.get('timeSlots', [])
             is_available = data.get('isAvailable', True) # Get the availability flag
 
@@ -1833,7 +2121,6 @@ def manage_daily_schedule():
 @app.route('/api/doctor/schedule/bulk', methods=['POST'])
 @doctor_login_required
 def save_bulk_schedule():
-    """Apply a bulk action to a date range (e.g., mark as unavailable or reset)."""
     try:
         doctor_email = session.get('doctor_email')
         if not doctor_email:
@@ -1878,7 +2165,6 @@ def save_bulk_schedule():
 
 @app.route('/api/doctors/available', methods=['GET'])
 def get_available_doctors():
-    """Get list of available doctors"""
     try:
         # Get all active doctors
         doctors = list(mongo.db.doctors.find({
@@ -1905,7 +2191,6 @@ def get_available_doctors():
 
 @app.route('/api/doctor/availability/<doctor_id>', methods=['GET'])
 def get_doctor_availability(doctor_id):
-    """Get available time slots for a doctor on a specific date"""
     try:
         date = request.args.get('date')
         if not date:
@@ -1942,7 +2227,6 @@ def get_doctor_availability(doctor_id):
 @app.route('/api/book-appointment-quick', methods=['POST'])
 @login_required
 def book_appointment_quick():
-    """Quick appointment booking with real-time availability check"""
     try:
         data = request.get_json()
         doctor_id = data.get('doctor_id')
@@ -2004,8 +2288,50 @@ def book_appointment_quick():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/doctor/appointments')
+@doctor_login_required
+def doctor_appointments():
+
+    doctor_email = session.get("doctor_email")
+    if not doctor_email:
+        return redirect(url_for("doctor_login"))
+
+    # Fetch different appointment categories
+    now = datetime.utcnow()
+
+    upcoming = list(mongo.db.appointments.find({
+        "doctor_email": doctor_email,
+        "start_at": {"$gte": now},
+        "status": {"$in": ["confirmed", "active"]}
+    }).sort("start_at", 1))
+
+    completed = list(mongo.db.appointments.find({
+        "doctor_email": doctor_email,
+        "status": "completed"
+    }).sort("start_at", -1))
+
+    cancelled = list(mongo.db.appointments.find({
+        "doctor_email": doctor_email,
+        "status": {"$in": ["cancelled", "no_show"]}
+    }).sort("start_at", -1))
+
+    all_appts = list(mongo.db.appointments.find({
+        "doctor_email": doctor_email
+    }).sort("start_at", -1))
+
+    specialties = get_specialties_from_db()
+
+    return render_template(
+        "Doctor/appointments_overview.html",
+        upcoming=upcoming,
+        completed=completed,
+        cancelled=cancelled,
+        all_appts=all_appts,
+        specialties=specialties,
+        now=now
+    )
+
 def generate_available_slots(schedule, appointments):
-    """Generate available time slots based on schedule and existing appointments"""
     # Default time slots (9 AM to 6 PM, 30-minute intervals)
     default_slots = [
         '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
@@ -2032,7 +2358,6 @@ def generate_available_slots(schedule, appointments):
     return final_slots
 
 def send_appointment_notifications(appointment, doctor):
-    """Send notifications for new appointment"""
     try:
         # Email notification to doctor
         if doctor.get('email'):
@@ -2050,7 +2375,6 @@ def send_appointment_notifications(appointment, doctor):
         print(f"Failed to send appointment notifications: {e}")
 
 def generate_time_slots(start_time, end_time, duration_minutes):
-    """Generate time slots between start and end time"""
     slots = []
     start_dt = datetime.strptime(start_time, '%H:%M')
     end_dt = datetime.strptime(end_time, '%H:%M')
@@ -2066,7 +2390,6 @@ def generate_time_slots(start_time, end_time, duration_minutes):
 # --- Specialty Management Routes ---
 
 def get_specialties_from_db():
-    """Get specialties from database"""
     try:
         specialties = {}
         for spec in mongo.db.specialties.find():
@@ -2086,7 +2409,6 @@ def get_specialties_from_db():
 @app.route('/admin/specialties')
 @admin_login_required
 def admin_specialties():
-    """Admin page to manage specialties"""
     try:
         specialties = list(mongo.db.specialties.find().sort('name', 1))
         return render_template('Admin/specialties.html', specialties=specialties)
@@ -2098,7 +2420,6 @@ def admin_specialties():
 @app.route('/admin/specialties/add', methods=['GET', 'POST'])
 @admin_login_required
 def admin_add_specialty():
-    """Add new specialty"""
     if request.method == 'GET':
         return render_template('Admin/add_specialty.html')
     
@@ -2141,7 +2462,6 @@ def admin_add_specialty():
 @app.route('/admin/specialties/<specialty_id>/edit', methods=['GET', 'POST'])
 @admin_login_required
 def admin_edit_specialty(specialty_id):
-    """Edit specialty"""
     try:
         specialty = mongo.db.specialties.find_one({'_id': ObjectId(specialty_id)})
         if not specialty:
@@ -2196,7 +2516,6 @@ def admin_edit_specialty(specialty_id):
 @app.route('/admin/specialties/<specialty_id>/delete', methods=['POST'])
 @admin_login_required
 def admin_delete_specialty(specialty_id):
-    """Delete specialty"""
     try:
         specialty = mongo.db.specialties.find_one({'_id': ObjectId(specialty_id)})
         if not specialty:
@@ -2228,7 +2547,6 @@ def admin_delete_specialty(specialty_id):
 @app.route('/admin/specialties/<specialty_id>/toggle', methods=['POST'])
 @admin_login_required
 def admin_toggle_specialty(specialty_id):
-    """Toggle specialty active status"""
     try:
         specialty = mongo.db.specialties.find_one({'_id': ObjectId(specialty_id)})
         if not specialty:
@@ -2251,7 +2569,6 @@ def admin_toggle_specialty(specialty_id):
 
 @app.route('/api/specialty/<specialty_key>/doctors', methods=['GET'])
 def get_doctors_for_specialty(specialty_key):
-    """Get all doctors for a specific specialty"""
     try:
         # Get all active doctors for this specialty
         doctors = list(mongo.db.doctors.find({
@@ -2278,67 +2595,68 @@ def get_doctors_for_specialty(specialty_key):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
 @app.route('/api/doctor/<doctor_id>/availability', methods=['GET'])
 def get_doctor_availability_for_booking(doctor_id):
-    """Get doctor's availability for a specific date range"""
     try:
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
-        
+
         if not start_date or not end_date:
             return jsonify({'error': 'Start date and end date required'}), 400
         
         start_dt = datetime.strptime(start_date, '%Y-%m-%d')
         end_dt = datetime.strptime(end_date, '%Y-%m-%d')
-        
-        # Get doctor details
+
+        # 1) Get doctor's weekly schedule (only once)
         doctor = mongo.db.doctors.find_one({'_id': ObjectId(doctor_id)})
         if not doctor:
             return jsonify({'error': 'Doctor not found'}), 404
-        
-        print(f"Debug: Processing availability for doctor {doctor['email']}")
-        
+
+        # Preload weekly schedule for the doctor
+        weekly_schedule = mongo.db.doctor_weekly_schedules.find_one({'doctor_email': doctor['email']})
+
+        # 2) Preload daily overrides for the date range
+        daily_overrides = {
+            s['date'].date(): s
+            for s in mongo.db.doctor_daily_schedules.find({
+                'doctor_email': doctor['email'],
+                'date': {'$gte': datetime.combine(start_dt.date(), datetime.min.time()),
+                        '$lte': datetime.combine(end_dt.date(), datetime.min.time())}
+            })
+        }
+
+        # 3) Preload all appointments for the date range
+        appointments_by_day = {}
+        for apt in mongo.db.appointments.find({
+            'doctor_email': doctor['email'],
+            'start_at': {'$gte': start_dt, '$lt': end_dt + timedelta(days=1)}
+        }):
+            day = apt['start_at'].date()
+            appointments_by_day.setdefault(day, []).append(apt)
+
+        # 4) Now loop through the date range and generate available slots in memory
         availability_data = []
-        current_date = start_dt
-        
-        while current_date <= end_dt:
-            date_str = current_date.strftime('%Y-%m-%d')
-            
-            # Get daily schedule override
-            daily_schedule = mongo.db.doctor_daily_schedules.find_one({
-                'doctor_email': doctor['email'],
-                'date': current_date
-            })
-            
-            # Get weekly schedule
-            weekly_schedule = mongo.db.doctor_weekly_schedules.find_one({
-                'doctor_email': doctor['email']
-            })
-            
-            print(f"Debug: Date {date_str} - Daily schedule: {daily_schedule}, Weekly schedule: {weekly_schedule}")
-            
-            # Get existing appointments for this date
-            appointments = list(mongo.db.appointments.find({
-                'doctor_email': doctor['email'],
-                'start_at': {
-                    '$gte': current_date,
-                    '$lt': current_date + timedelta(days=1)
-                }
-            }))
-            
-            # Generate available time slots
-            available_slots = generate_available_slots_for_date(
-                current_date, daily_schedule, weekly_schedule, appointments
-            )
-            
+        cur = start_dt
+        while cur <= end_dt:
+            # Get the daily override for the current day (if exists)
+            daily_schedule = daily_overrides.get(cur.date())
+
+            # Get appointments for the current day
+            appointments = appointments_by_day.get(cur.date(), [])
+
+            # Generate available time slots based on the schedule
+            slots = generate_available_slots_for_date(cur, daily_schedule, weekly_schedule, appointments)
+
+            # Append the result for the current date
             availability_data.append({
-                'date': date_str,
-                'available_slots': available_slots,
-                'is_available': len(available_slots) > 0
+                'date': cur.strftime('%Y-%m-%d'),
+                'available_slots': slots,
+                'is_available': len(slots) > 0
             })
-            
-            current_date += timedelta(days=1)
-        
+
+            cur += timedelta(days=1)
+
         return jsonify({
             'success': True,
             'doctor': {
@@ -2349,177 +2667,62 @@ def get_doctor_availability_for_booking(doctor_id):
             },
             'availability': availability_data
         })
+
     except Exception as e:
         print(f"Error in get_doctor_availability_for_booking: {e}")
         return jsonify({'error': str(e)}), 500
 
+
 def generate_available_slots_for_date(date, daily_schedule, weekly_schedule, appointments):
-    """Generate available time slots for a specific date"""
     available_slots = []
-    
-    # Check if doctor is unavailable for this date
-    if daily_schedule and not daily_schedule.get('isAvailable', True):
+
+    # If day explicitly marked unavailable via daily override
+    if daily_schedule and daily_schedule.get('isAvailable') is False:
         return available_slots
-    
-    # Get the day of week (0=Monday, 6=Sunday)
-    day_of_week = date.weekday()
-    day_name = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'][day_of_week]
-    
-    # Get weekly schedule for this day
-    weekly_slots = weekly_schedule.get('schedule', {}).get(day_name, []) if weekly_schedule else []
-    
-    # Get daily override slots
-    daily_slots = daily_schedule.get('time_slots', []) if daily_schedule else []
-    
-    # Use daily override if available, otherwise use weekly schedule
-    time_slots = daily_slots if daily_slots else weekly_slots
-    
-    # Ensure time_slots is a list
-    if not isinstance(time_slots, list):
-        print(f"Warning: time_slots is not a list: {type(time_slots)} - {time_slots}")
-        time_slots = []
-    
-    # Convert appointments to time slots for conflict checking
-    booked_slots = set()
-    for appointment in appointments:
-        start_time = appointment['start_at'].strftime('%H:%M')
-        end_time = appointment['end_at'].strftime('%H:%M')
-        booked_slots.add(start_time)
-    
-    # Handle different slot formats
-    if time_slots and isinstance(time_slots, dict):
-        # Handle dictionary-based format (new format with active, startTime, endTime, etc.)
-        print(f"Debug: Processing dictionary-based slots: {time_slots}")
-        
-        # Check if the slot is active
-        if not time_slots.get('active', True):
-            return available_slots
-        
-        # Extract time information from the schedule
-        start_time = time_slots.get('startTime')
-        end_time = time_slots.get('endTime')
-        duration = time_slots.get('duration', 30)  # Default 30 minutes
-        
-        print(f"Debug: Found start_time={start_time}, end_time={end_time}, duration={duration}")
-        
-        # If we have start and end times, generate slots
-        if start_time and end_time:
-            print(f"Debug: Generating slots from {start_time} to {end_time}")
-            
-            # Parse start and end times
-            try:
-                start_hour, start_minute = map(int, start_time.split(':'))
-                end_hour, end_minute = map(int, end_time.split(':'))
-                
-                # Generate slots between start and end time
-                current_hour = start_hour
-                current_minute = start_minute
-                
-                while (current_hour < end_hour) or (current_hour == end_hour and current_minute < end_minute):
-                    slot_start = f"{current_hour:02d}:{current_minute:02d}"
-                    
-                    # Calculate end time for this slot
-                    slot_end_minute = current_minute + duration
-                    slot_end_hour = current_hour + (slot_end_minute // 60)
-                    slot_end_minute = slot_end_minute % 60
-                    slot_end = f"{slot_end_hour:02d}:{slot_end_minute:02d}"
-                    
-                    # Check if this slot conflicts with existing appointments
-                    if slot_start not in booked_slots:
-                        available_slots.append({
-                            'start': slot_start,
-                            'end': slot_end,
-                            'formatted': f"{slot_start} - {slot_end}"
-                        })
-                    
-                    # Move to next slot
-                    current_minute += duration
-                    current_hour += current_minute // 60
-                    current_minute = current_minute % 60
-                    
-            except ValueError as e:
-                print(f"Error parsing time format: {e}")
-                return available_slots
-    elif time_slots and isinstance(time_slots[0], str):
-        # Handle string-based format (field names)
-        print(f"Debug: Processing string-based slots: {time_slots}")
-        
-        # Extract time information from the schedule
-        start_time = None
-        end_time = None
-        duration = 30  # Default 30 minutes
-        
-        for i, field in enumerate(time_slots):
-            if field == 'startTime' and i + 1 < len(time_slots):
-                start_time = time_slots[i + 1]
-            elif field == 'endTime' and i + 1 < len(time_slots):
-                end_time = time_slots[i + 1]
-            elif field == 'duration' and i + 1 < len(time_slots):
-                try:
-                    duration = int(time_slots[i + 1])
-                except ValueError:
-                    duration = 30
-        
-        # If we have start and end times, generate slots
-        if start_time and end_time:
-            print(f"Debug: Found start_time={start_time}, end_time={end_time}, duration={duration}")
-            
-            # Parse start and end times
-            try:
-                start_hour, start_minute = map(int, start_time.split(':'))
-                end_hour, end_minute = map(int, end_time.split(':'))
-                
-                # Generate 30-minute slots between start and end time
-                current_hour = start_hour
-                current_minute = start_minute
-                
-                while (current_hour < end_hour) or (current_hour == end_hour and current_minute < end_minute):
-                    slot_start = f"{current_hour:02d}:{current_minute:02d}"
-                    
-                    # Calculate end time for this slot
-                    slot_end_minute = current_minute + duration
-                    slot_end_hour = current_hour + (slot_end_minute // 60)
-                    slot_end_minute = slot_end_minute % 60
-                    slot_end = f"{slot_end_hour:02d}:{slot_end_minute:02d}"
-                    
-                    # Check if this slot conflicts with existing appointments
-                    if slot_start not in booked_slots:
-                        available_slots.append({
-                            'start': slot_start,
-                            'end': slot_end,
-                            'formatted': f"{slot_start} - {slot_end}"
-                        })
-                    
-                    # Move to next slot
-                    current_minute += duration
-                    current_hour += current_minute // 60
-                    current_minute = current_minute % 60
-                    
-            except ValueError as e:
-                print(f"Error parsing time format: {e}")
-                return available_slots
-    else:
-        # Handle dictionary-based format (original expected format)
-        for slot in time_slots:
-            # Ensure slot is a dictionary
-            if not isinstance(slot, dict):
-                print(f"Warning: slot is not a dict: {type(slot)} - {slot}")
-                continue
-                
-            start_time = slot.get('start')
-            end_time = slot.get('end')
-            
-            if start_time and end_time:
-                # Check if this slot conflicts with existing appointments
-                if start_time not in booked_slots:
-                    available_slots.append({
-                        'start': start_time,
-                        'end': end_time,
-                        'formatted': f"{start_time} - {end_time}"
-                    })
-    
-    print(f"Debug: Generated {len(available_slots)} available slots")
+
+    # Day name for weekly default
+    day_name = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'][date.weekday()]
+    weekly_def = (weekly_schedule or {}).get('schedule', {}).get(day_name)
+
+    # Booked starts (HH:MM)
+    booked = {apt['start_at'].strftime('%H:%M') for apt in (appointments or [])}
+
+    def add_minutes(hhmm, minutes):
+        h, m = map(int, hhmm.split(':'))
+        total = h*60 + m + minutes
+        return f"{(total//60):02d}:{(total%60):02d}"
+
+    # 1) Daily override: explicit list of slot starts like ["09:00", "09:30", ...]
+    daily_slots = (daily_schedule or {}).get('time_slots') or []
+    if isinstance(daily_slots, list) and daily_slots:
+        duration = (weekly_def or {}).get('duration', 30)
+        for s in sorted(daily_slots):
+            if s not in booked:
+                e = add_minutes(s, duration)
+                available_slots.append({'start': s, 'end': e, 'formatted': f"{s} - {e}"})
+        return available_slots
+
+    # 2) Weekly default dict: {active, startTime, endTime, duration, breakStart, breakEnd}
+    if isinstance(weekly_def, dict) and weekly_def.get('active', True):
+        start = weekly_def.get('startTime')
+        end = weekly_def.get('endTime')
+        duration = weekly_def.get('duration', 30)
+        break_start = weekly_def.get('breakStart')
+        break_end = weekly_def.get('breakEnd')
+
+        if start and end:
+            cur = start
+            while cur < end:
+                # Respect break if defined
+                in_break = bool(break_start and break_end and break_start <= cur < break_end)
+                if not in_break and cur not in booked:
+                    e = add_minutes(cur, duration)
+                    if e <= end:
+                        available_slots.append({'start': cur, 'end': e, 'formatted': f"{cur} - {e}"})
+                cur = add_minutes(cur, duration)
+
     return available_slots
+
 
 if __name__ == "__main__":
     app.run(debug=True)
