@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
 
@@ -22,6 +22,7 @@
             <a href="{{ url_for('new_prediction') }}" class="{{ 'active' if request.endpoint == 'new_prediction' else '' }}"><i class="fas fa-file-medical-alt"></i> New Prediction</a>
             <a href="{{ url_for('history') }}" class="{{ 'active' if request.endpoint == 'history' else '' }}"><i class="fas fa-history"></i> History</a>
             <a href="{{ url_for('appointments') }}" class="{{ 'active' if request.endpoint == 'appointments' else '' }}"><i class="fas fa-calendar-alt"></i> Appointments</a>
+            <a href="{{ url_for('conversations_page') }}" class="{{ 'active' if request.endpoint == 'conversations_page' else '' }}"><i class="fas fa-comments"></i> Chats</a>
             <a href="{{ url_for('profile') }}" class="{{ 'active' if request.endpoint == 'profile' else '' }}"><i class="fas fa-user-cog"></i> Profile</a>
         </div>
         <div class="logout">

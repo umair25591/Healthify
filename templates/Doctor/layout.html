@@ -6,21 +6,17 @@
     <title>{% block title %}Doctor Portal - Healthify{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <nav class="sidebar">
         <h1 class="logo"><i class="fas fa-stethoscope"></i>Doctor</h1>
         <div class="nav-menu">
             <a href="{{ url_for('doctor_dashboard') }}" class="{{ 'active' if request.endpoint == 'doctor_dashboard' else '' }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-        </div>
-        <div class="nav-menu">
             <a href="{{ url_for('doctor_patients') }}" class="{{ 'active' if request.endpoint == 'doctor_patients' else '' }}"><i class="fas fa-users"></i> Patients</a>
-        </div>
-        <div class="nav-menu">
             <a href="{{ url_for('schedule_managment') }}" class="{{ 'active' if request.endpoint == 'schedule_managment' else '' }}"><i class="fas fa-calendar-alt"></i> Schedule</a>
-        </div>
-        <div class="nav-menu">
             <a href="{{ url_for('doctor_appointments') }}" class="{{ 'active' if request.endpoint == 'doctor_appointments' else '' }}"><i class="fas fa-calendar-alt"></i> Appointments</a>
+            <a href="{{ url_for('doctor_conversations_page') }}" class="{{ 'active' if request.endpoint == 'doctor_conversations_page' else '' }}"><i class="fas fa-comments"></i> Chats</a>
         </div>
         <div class="logout">
             <a href="{{ url_for('doctor_logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
@@ -30,6 +26,7 @@
     <main class="main-content">
         {% block content %}{% endblock %}
     </main>
+
 </body>
 </html>
 

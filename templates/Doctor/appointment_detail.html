@@ -278,9 +278,9 @@
         <button class="action-btn" onclick="scheduleFollowUp()">
             <i class="fas fa-calendar-plus"></i> Follow-up
         </button>
-        <button class="action-btn" onclick="sendMessage()">
+        <a href="{{ url_for('doctor_chat_page', conversation_id=conversation_id) }}" class="action-btn">
             <i class="fas fa-comment"></i> Message
-        </button>
+        </a>
     </div>
 
 
@@ -395,20 +395,20 @@
             method: "POST",
             headers: { "Content-Type": "application/json" }
         })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert("Appointment started. Meeting link sent to patient and doctor.");
-                window.open(data.meeting_link, "_blank");
-                location.reload();
-            } else {
-                alert("Error: " + data.message);
-            }
-        })
-        .catch(err => {
-            console.error("Error starting appointment:", err);
-            alert("Failed to start appointment. Try again.");
-        });
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Appointment started. Meeting link sent to patient and doctor.");
+                    window.open(data.meeting_link, "_blank");
+                    location.reload();
+                } else {
+                    alert("Error: " + data.message);
+                }
+            })
+            .catch(err => {
+                console.error("Error starting appointment:", err);
+                alert("Failed to start appointment. Try again.");
+            });
     }
 
     function completeAppointment(appointmentId) {
@@ -418,18 +418,18 @@
             method: "POST",
             headers: { "Content-Type": "application/json" }
         })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                window.location.reload();
-            } else {
-                alert("Error: " + data.message);
-            }
-        })
-        .catch(err => {
-            console.error("Error starting appointment:", err);
-            alert("Failed to start appointment. Try again.");
-        });
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert("Error: " + data.message);
+                }
+            })
+            .catch(err => {
+                console.error("Error starting appointment:", err);
+                alert("Failed to start appointment. Try again.");
+            });
     }
 </script>
 {% endblock %}

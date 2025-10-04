@@ -1,0 +1,236 @@
+{% extends "Doctor/layout.html" %} {% block title %}Conversations - Healthify{% endblock %}
+{% block content %}
+<style>
+    body {
+        /* background: linear-gradient(135deg, #1e1e2f, #2a2a40); */
+        font-family: 'Inter', sans-serif;
+        color: #fff;
+        margin: 0;
+    }
+
+    .main-content {
+        display: flex;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 2rem;
+    }
+
+    .conversations-container {
+        width: 100%;
+        max-width: 1100px;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        max-height: 85vh;
+        /* keeps it centered nicely */
+    }
+
+    .page-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(255, 255, 255, 0.07);
+    }
+
+    .page-header h1 {
+        margin: 0;
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .page-header i {
+        color: #4a9eff;
+    }
+
+    .conversation-list {
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        max-height: 70vh;
+    }
+
+    .conversation-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        margin: .5rem;
+        border-radius: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        text-decoration: none;
+        transition: background 0.25s ease;
+        color: inherit;
+    }
+
+    .conversation-item:last-child {
+        border-bottom: none;
+    }
+
+    .conversation-item:hover {
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .conversation-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        margin-right: 1rem;
+        object-fit: cover;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .conversation-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .conversation-info .top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.3rem;
+    }
+
+    .conversation-info .name {
+        font-weight: 600;
+        font-size: 1rem;
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .conversation-info .timestamp {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.5);
+        white-space: nowrap;
+        margin-left: 0.5rem;
+    }
+
+    .conversation-info .preview {
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.7);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .empty-state {
+        padding: 3rem 1rem;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .empty-state i {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        display: block;
+        color: #4a9eff;
+    }
+
+    .conversation-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .conversation-list::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+    }
+
+    @media (max-width: 600px) {
+        .conversation-avatar {
+            width: 40px;
+            height: 40px;
+        }
+    }
+</style>
+
+<div class="conversations-container">
+    <div class="page-header">
+        <h1><i class="fas fa-comments"></i> Conversations</h1>
+    </div>
+    <div class="conversation-list" id="conversation-list">
+        <div class="empty-state">
+            <i class="fas fa-comment-slash"></i>
+            <p>Loading conversations...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    function loadConversations() {
+        const $list = $('#conversation-list');
+
+        $.ajax({
+            url: '/api/doctor/conversations',
+            method: 'GET',
+            dataType: 'json',
+            success: function (conversations) {
+                if (!conversations || conversations.length === 0) {
+                    $list.html(`
+                        <div class="empty-state">
+                            <i class="fas fa-comment-slash"></i>
+                            <p>You have no conversations yet.</p>
+                        </div>
+                    `);
+                    return;
+                }
+
+                $list.empty();
+                conversations.forEach(conv => {
+                    const avatarUrl = conv.other_user_avatar || '/static/default-avatar.png';
+                    
+                    const rawTimestamp = conv.timestamp?.$date || conv.timestamp;
+                    const date = new Date(rawTimestamp);
+
+                    var timeString = ''
+
+                    if (!isNaN(date)) {
+                        timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        console.log(timeString);
+                    } else {
+                        console.warn('Invalid date:', conv.timestamp);
+                    }
+
+                    const $item = $(`
+                        <a href="/doctor/chat/${conv._id}" class="conversation-item">
+                            <img class="conversation-avatar" src="${avatarUrl}" alt="${conv.other_user_name}">
+                            <div class="conversation-info">
+                                <div class="top-row">
+                                    <div class="name">${conv.other_user_name}</div>
+                                    <div class="timestamp">${timeString}</div>
+                                </div>
+                                <div class="preview">${conv.last_message || ''}</div>
+                            </div>
+                        </a>
+                    `);
+
+                    $list.append($item);
+                });
+            },
+            error: function (xhr, status, error) {
+                console.error("Failed to load conversations:", error);
+                $('#conversation-list').html(`
+                    <div class="empty-state" style="color: #f87171;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Could not load conversations.</p>
+                    </div>
+                `);
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        loadConversations();
+    });
+</script>
+{% endblock %}

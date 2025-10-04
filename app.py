@@ -27,6 +27,10 @@ from threading import Thread
 import requests
 from zipfile import ZipFile
 from functools import wraps
+from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2, preprocess_input
+from tensorflow.keras.preprocessing import image as keras_image
+from sklearn.metrics.pairwise import cosine_similarity
+import pickle
 
 def download_and_extract(url, target_dir, zip_name):
     os.makedirs(target_dir, exist_ok=True)
@@ -63,6 +67,10 @@ def ensure_models():
         "image_chest_xray_model_v1.h5": {
             "url": "https://github.com/RafeyCooper/Healthify/releases/download/v1.0.0/image_chest_xray_model_v1.zip",
             "zip_name": "image_chest_xray_model_v1.zip"
+        },
+        "xray_feature_bank.pkl": {
+            "url": "https://github.com/umair25591/Healthify/releases/download/v1.0.0/xray_feature_bank.zip",
+            "zip_name": "xray_feature_bank.zip"
         }
     }
 
@@ -83,6 +91,10 @@ try:
     kidney_model = joblib.load("model/tabular_kidney_disease_model_v1.pkl")
     retinopathy_model = load_model("model/image_retinopathy_model_v1.h5")
     chest_model = load_model("model/image_chest_xray_model_v1.h5")
+
+    with open('model/xray_feature_bank.pkl', 'rb') as f:
+        xray_feature_bank = pickle.load(f)
+
 
     heart_explainer = shap.TreeExplainer(heart_model)
     kidney_explainer = shap.TreeExplainer(kidney_model)
@@ -120,6 +132,7 @@ app.config['ADMIN_PORTAL_PASS'] = os.getenv('ADMIN_PORTAL_PASS', 'admin123')
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
 
 mongo = PyMongo(app)
 login_manager = LoginManager()
@@ -561,6 +574,38 @@ def get_user_friendly_response(analysis_type, is_positive, confidence_percent):
                 
                 return response
 
+def extract_feature(img_path_or_stream, target_size=(224, 224)):
+    if hasattr(img_path_or_stream, 'read'):
+        img_path_or_stream.seek(0)
+        img = Image.open(img_path_or_stream).convert('RGB')
+    else:
+        img = Image.open(img_path_or_stream).convert('RGB')
+
+    img = img.resize(target_size)
+    x = keras_image.img_to_array(img)
+    x = np.expand_dims(x, axis=0)
+    x = preprocess_input(x)
+    feat = xray_feature_extractor.predict(x)
+    return feat[0]
+
+
+xray_feature_extractor = MobileNetV2(weights='imagenet', include_top=False, pooling='avg')
+
+def is_valid_xray_image(img_file, threshold=0.6):
+    if not xray_feature_bank:
+        return True
+
+    query_feat = extract_feature(img_file)
+
+    similarities = [
+        cosine_similarity([query_feat], [ref_feat])[0][0]
+        for ref_feat in xray_feature_bank.values()
+    ]
+    max_sim = max(similarities) if similarities else 0
+
+    print(f"🔍 Max X-ray similarity: {max_sim:.3f}")
+
+    return max_sim >= threshold
 
 
 @app.route('/')
@@ -773,6 +818,12 @@ def image_prediction():
         if not patient_details.get('patientName') or not patient_details.get('patientAge') or not patient_details.get('patientGender'):
             return jsonify({'error': 'Missing required patient details (Name, Age, Gender)'}), 400
         
+        if analysis_type == 'xray':
+            image_file.stream.seek(0)
+            if not is_valid_xray_image(image_file):
+                return jsonify({'error': 'The uploaded image does not appear to be a valid chest X-ray. Please upload a proper X-ray image.'}), 400
+            image_file.stream.seek(0)
+
         filename = secure_filename(image_file.filename)
         unique_filename = f"{uuid.uuid4().hex}_{filename}"
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
@@ -1151,6 +1202,59 @@ def feedback(appointment_id):
     return render_template("feedback.html", appointment=appointment)
 
 
+@app.route('/appointment/<appointment_id>/cancel', methods=['POST'])
+@login_required
+def cancel_appointment(appointment_id):
+    try:
+        appointment = mongo.db.appointments.find_one({
+            '_id': ObjectId(appointment_id),
+            'user_id': current_user.id # Security: Ensure user owns this appointment
+        })
+
+        if not appointment:
+            flash('Appointment not found or you do not have permission to cancel it.', 'danger')
+            return redirect(url_for('appointments'))
+
+        # You can add logic here to prevent cancellation too close to the appointment time
+        
+        mongo.db.appointments.update_one(
+            {'_id': ObjectId(appointment_id)},
+            {'$set': {'status': 'cancelled'}}
+        )
+
+        # Optional: Notify the doctor of the cancellation via email
+        # send_plain_email(appointment['doctor_email'], 'Appointment Cancelled', f"Patient {current_user.username} has cancelled their appointment on {appointment['start_at']}.")
+
+        flash('Your appointment has been successfully cancelled.', 'success')
+    except Exception as e:
+        flash('An error occurred while cancelling the appointment.', 'danger')
+        print(f"Error cancelling appointment: {e}")
+
+    return redirect(url_for('appointments'))
+
+
+# Add this route for the "View Details" button on past appointments
+@app.route('/appointment/<appointment_id>/details')
+@login_required
+def appointment_details(appointment_id):
+    try:
+        appointment = mongo.db.appointments.find_one({
+            '_id': ObjectId(appointment_id),
+            'user_id': current_user.id
+        })
+
+        if not appointment:
+            abort(404)
+        
+        # You'll need to create a new template: 'dashboard/appointment_details.html'
+        # This template will display all appointment info, including doctor's notes, diagnosis, etc.
+        return render_template('dashboard/appointment_details.html', appointment=appointment)
+
+    except Exception as e:
+        print(f"Error fetching appointment details: {e}")
+        abort(500)
+
+
 # --- Doctor Portal (MVP) ---
 @app.route('/doctor/login', methods=['GET', 'POST'])
 def doctor_login():
@@ -1350,7 +1454,10 @@ def doctor_patient_profile(patient_email):
     
     # Get upcoming appointments
     now = datetime.utcnow()
-    upcoming_appointments = [apt for apt in appointments if apt['start_at'] > now]
+    upcoming_appointments = [
+        apt for apt in appointments
+        if apt['start_at'] > now and apt.get('status') == 'confirmed'
+    ]
     
     return render_template('Doctor/patient_profile.html',
                          patient=patient_info,
@@ -1359,43 +1466,42 @@ def doctor_patient_profile(patient_email):
                          upcoming_appointments=upcoming_appointments,
                          specialties=get_specialties_from_db())
 
-
 @app.route('/doctor/appointment/<appointment_id>')
 @doctor_login_required
 def doctor_appointment_detail(appointment_id):
-    doctor_email = session.get('doctor_email')
-    if not doctor_email:
+    doctor_id = session.get('doctor_id')
+    if not doctor_id:
         return redirect(url_for('doctor_login'))
     
     try:
-        # Get appointment details
         appointment = mongo.db.appointments.find_one({
             '_id': ObjectId(appointment_id),
-            'doctor_email': doctor_email
+            'doctor_id': ObjectId(doctor_id)
         })
         
         if not appointment:
             flash('Appointment not found.', 'danger')
             return redirect(url_for('doctor_dashboard'))
         
-        # Get patient's previous appointments
         patient_appointments = list(mongo.db.appointments.find({
-            'doctor_email': doctor_email,
+            'doctor_id': ObjectId(doctor_id),
             'patient_email': appointment.get('patient_email'),
             '_id': {'$ne': ObjectId(appointment_id)}
         }).sort('start_at', -1).limit(5))
         
+        patient_user_id = str(appointment['user_id'])
+        conversation_id = get_conversation_id(doctor_id, patient_user_id)
         
         return render_template('Doctor/appointment_detail.html',
                              appointment=appointment,
                              patient_appointments=patient_appointments,
-                             specialties=get_specialties_from_db())
+                             specialties=get_specialties_from_db(),
+                             conversation_id=conversation_id)
     
     except Exception as e:
         print(f"Error loading appointment: {e}")
         flash('Error loading appointment details.', 'danger')
         return redirect(url_for('doctor_dashboard'))
-
 
 @app.route('/doctor/appointment/<appointment_id>/update', methods=['POST'])
 @doctor_login_required
@@ -2628,10 +2734,16 @@ def get_doctor_availability_for_booking(doctor_id):
 
         # 3) Preload all appointments for the date range
         appointments_by_day = {}
-        for apt in mongo.db.appointments.find({
+        
+        # Find appointments that are active and should block a slot
+        active_statuses = ['confirmed', 'pending', 'active']
+        query = {
             'doctor_email': doctor['email'],
-            'start_at': {'$gte': start_dt, '$lt': end_dt + timedelta(days=1)}
-        }):
+            'start_at': {'$gte': start_dt, '$lt': end_dt + timedelta(days=1)},
+            'status': {'$in': active_statuses} # <-- FIX: Added status filter
+        }
+        
+        for apt in mongo.db.appointments.find(query):
             day = apt['start_at'].date()
             appointments_by_day.setdefault(day, []).append(apt)
 
@@ -2724,6 +2836,172 @@ def generate_available_slots_for_date(date, daily_schedule, weekly_schedule, app
     return available_slots
 
 
+# Helper function to create a consistent conversation ID
+def get_conversation_id(id1, id2):
+    return '_'.join(sorted([str(id1), str(id2)]))
+
+@app.route('/api/doctor/conversations')
+@doctor_login_required
+def get_doctor_conversations():
+    doctor_id = session.get('doctor_id')
+    
+    pipeline = [
+        {'$match': {'$or': [{'sender_id': doctor_id}, {'receiver_id': doctor_id}]}},
+        {'$sort': {'timestamp': -1}},
+        {'$group': {
+            '_id': '$conversation_id',
+            'last_message': {'$first': '$content'},
+            'timestamp': {'$first': '$timestamp'},
+            'sender_id': {'$first': '$sender_id'},
+            'receiver_id': {'$first': '$receiver_id'}
+        }},
+        {'$sort': {'timestamp': -1}}
+    ]
+    conversations = list(mongo.db.conversations.aggregate(pipeline))
+
+    for conv in conversations:
+        other_user_id = conv['sender_id'] if conv['sender_id'] != doctor_id else conv['receiver_id']
+        patient = mongo.db.users.find_one({'_id': ObjectId(other_user_id)})
+        if patient:
+            conv['other_user_name'] = patient['username']
+            conv['other_user_id'] = str(patient['_id'])
+        else:
+            conv['other_user_name'] = 'Unknown Patient'
+            conv['other_user_id'] = other_user_id
+        # Convert ObjectId to string for JSON
+        conv['_id'] = str(conv['_id'])
+            
+    return jsonify(conversations)
+
+@app.route('/api/user/conversations')
+@login_required
+def get_user_conversations():
+    user_id = current_user.id
+    
+    pipeline = [
+        {'$match': {'$or': [{'sender_id': user_id}, {'receiver_id': user_id}]}},
+        {'$sort': {'timestamp': -1}},
+        {'$group': {
+            '_id': '$conversation_id',
+            'last_message': {'$first': '$content'},
+            'timestamp': {'$first': '$timestamp'},
+            'sender_id': {'$first': '$sender_id'},
+            'receiver_id': {'$first': '$receiver_id'}
+        }},
+        {'$sort': {'timestamp': -1}}
+    ]
+    conversations = list(mongo.db.conversations.aggregate(pipeline))
+
+    for conv in conversations:
+        other_user_id = conv['sender_id'] if conv['sender_id'] != user_id else conv['receiver_id']
+        doctor = mongo.db.doctors.find_one({'_id': ObjectId(other_user_id)})
+        if doctor:
+            conv['other_user_name'] = doctor['full_name']
+            conv['other_user_id'] = str(doctor['_id'])
+        else:
+            conv['other_user_name'] = 'Unknown Doctor'
+            conv['other_user_id'] = other_user_id
+        # Convert ObjectId to string for JSON
+        conv['_id'] = str(conv['_id'])
+
+    return jsonify(conversations)
+
+@app.route('/api/conversation/<conversation_id>')
+def get_messages(conversation_id):
+
+    if current_user.is_authenticated:
+        user_id = current_user.id
+
+    elif session.get('doctor_logged_in'):
+        user_id = session.get('doctor_id')
+
+    else:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    messages = list(mongo.db.conversations.find({
+        'conversation_id': conversation_id
+    }).sort('timestamp', 1))
+
+    mongo.db.conversations.update_many(
+        {'conversation_id': conversation_id, 'receiver_id': user_id, 'is_read': False},
+        {'$set': {'is_read': True}}
+    )
+
+    for msg in messages:
+        msg['_id'] = str(msg['_id'])
+
+    return jsonify(messages)
+
+@app.route('/api/conversation/send', methods=['POST'])
+def send_message():
+    data = request.get_json()
+    receiver_id = data.get('receiver_id')
+    content = data.get('content')
+
+    if not receiver_id or not content:
+        return jsonify({'error': 'Missing fields'}), 400
+
+    if current_user.is_authenticated:
+        sender_id = current_user.id
+    elif session.get('doctor_logged_in'):
+        sender_id = session.get('doctor_id')
+    else:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    conversation_id = "_".join(sorted([sender_id, receiver_id]))
+
+    message = {
+        'conversation_id': conversation_id,
+        'sender_id': sender_id,
+        'receiver_id': receiver_id,
+        'content': content,
+        'timestamp': datetime.utcnow(),
+        'is_read': False
+    }
+
+    mongo.db.conversations.insert_one(message)
+    return jsonify({'success': True}), 201
+
+@app.route('/conversations')
+@login_required
+def conversations_page():
+    return render_template('dashboard/conversations.html')
+
+@app.route('/chat/<conversation_id>')
+@login_required
+def chat_page(conversation_id):
+    
+    user_id = current_user.id
+    ids = conversation_id.split('_')
+    other_user_id = ids[0] if ids[0] != user_id else ids[1]
+    
+    other_user = mongo.db.doctors.find_one({'_id': ObjectId(other_user_id)})
+    if not other_user:
+        other_user = {'full_name': 'User'}
+
+    return render_template('dashboard/chat.html', 
+                           conversation_id=conversation_id, 
+                           other_user_name=other_user['full_name'])
+
+@app.route('/doctor/conversations')
+@doctor_login_required
+def doctor_conversations_page():
+    return render_template('Doctor/conversations.html')
+
+@app.route('/doctor/chat/<conversation_id>')
+@doctor_login_required
+def doctor_chat_page(conversation_id):
+    doctor_id = session.get('doctor_id')
+    ids = conversation_id.split('_')
+    other_user_id = ids[0] if ids[0] != doctor_id else ids[1]
+
+    other_user = mongo.db.users.find_one({'_id': ObjectId(other_user_id)})
+    if not other_user:
+        other_user = {'username': 'Unknown Patient'}
+
+    return render_template('Doctor/chat.html', 
+                           conversation_id=conversation_id, 
+                           other_user_name=other_user['username'])
+
 if __name__ == "__main__":
     app.run(debug=True)
-

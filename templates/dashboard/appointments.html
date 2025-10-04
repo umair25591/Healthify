@@ -4,52 +4,58 @@
 
 {% block content %}
 <style>
-    .timeline {
-        position: relative;
-        margin: 2rem 0;
-        padding-left: 40px;
-    }
-
-    .timeline::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 18px;
-        width: 4px;
-        height: 100%;
-        background: var(--primary-color);
-        border-radius: 2px;
-        opacity: 0.4;
-    }
-
-    .timeline-item {
-        position: relative;
+    /* New Tab Styles */
+    .tabs-container {
+        display: flex;
+        border-bottom: 2px solid var(--border-color);
         margin-bottom: 2rem;
-        animation: fadeInUp 0.6s ease;
     }
 
-    .timeline-dot {
+    .tab-link {
+        padding: 12px 20px;
+        cursor: pointer;
+        background: none;
+        border: none;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-light);
+        position: relative;
+        transition: color 0.3s ease;
+    }
+
+    .tab-link.active {
+        color: var(--primary-color);
+    }
+
+    .tab-link.active::after {
+        content: '';
         position: absolute;
-        top: 0.5rem;
-        left: -1px;
-        width: 16px;
-        height: 16px;
-        background: var(--primary-color);
-        border-radius: 50%;
-        box-shadow: 0 0 0 4px var(--card-bg);
+        bottom: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background-color: var(--primary-color);
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    /* Core Timeline Styles (from your original file) */
+    .timeline-item {
+        margin-bottom: 1.5rem;
+        animation: fadeInUp 0.5s ease;
     }
 
     .timeline-content {
         background: var(--card-bg);
         padding: 20px;
         border-radius: 14px;
-        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
-        transition: transform 0.25s ease, box-shadow 0.25s ease;
-    }
-
-    .timeline-content:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
 
     .appt-title {
@@ -65,7 +71,7 @@
         gap: 16px;
         font-size: 0.9rem;
         color: var(--text-light);
-        margin-bottom: 8px;
+        margin-bottom: 1rem;
     }
 
     .appt-meta span {
@@ -78,67 +84,67 @@
         margin-top: 8px;
         font-size: 0.95rem;
         color: var(--text-secondary);
+        padding-left: 1rem;
+        border-left: 3px solid var(--border-color);
     }
 
+    /* New Action Buttons Section */
     .appt-actions {
-        margin-top: 14px;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
     }
 
     .btn {
         padding: 8px 16px;
-        border-radius: 10px;
-        border: 1px solid var(--primary-color);
-        color: var(--primary-color);
-        background: transparent;
-        cursor: pointer;
+        border-radius: 8px;
         text-decoration: none;
         font-weight: 500;
-        transition: all 0.25s ease;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border: 1px solid var(--border-color);
+        background: transparent;
     }
 
-    .btn:hover {
-        background: rgba(var(--primary-rgb), 0.1);
+    .btn-primary-outline {
+        color: var(--primary-color);
+        border-color: var(--primary-color);
     }
 
-    /* Status badges */
-    .status-badge {
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        text-transform: capitalize;
+    .btn-primary-outline:hover {
+        background: var(--primary-color);
+        color: #fff;
     }
 
-    .status-confirmed {
-        background: #d1fae5;
-        color: #065f46;
+    .btn-danger-outline {
+        color: #e53e3e;
+        border-color: #e53e3e;
     }
 
-    .status-pending {
-        background: #fef3c7;
-        color: #92400e;
+    .btn-danger-outline:hover {
+        background: #e53e3e;
+        color: #fff;
     }
 
-    .status-cancelled {
-        background: #fee2e2;
-        color: #991b1b;
+    .btn-success {
+        background: #27ae60;
+        color: #fff;
+        border-color: #27ae60;
     }
 
-    /* Animations */
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(15px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    .btn-secondary {
+        color: var(--text-light);
+        border-color: var(--border-color);
     }
-</style>
 
-<style>
+    .btn-secondary:hover {
+        background: var(--bg-secondary);
+    }
+
+    /* Other styles from your original file */
     .appointment-alert {
         display: flex;
         align-items: center;
@@ -176,6 +182,58 @@
         font-size: 0.9rem;
     }
 
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: capitalize;
+        display: inline-block;
+    }
+
+    .status-confirmed {
+        background: rgba(34, 197, 94, 0.15);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.4);
+    }
+
+    .status-pending {
+        background: rgba(251, 191, 36, 0.15);
+        color: #d97706;
+        border: 1px solid rgba(251, 191, 36, 0.4);
+    }
+
+    .status-active {
+        background: rgba(59, 130, 246, 0.15);
+        color: #2563eb;
+        border: 1px solid rgba(59, 130, 246, 0.4);
+    }
+
+    .status-completed {
+        background: rgba(16, 185, 129, 0.15);
+        color: #059669;
+        border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .status-cancelled,
+    .status-no_show {
+        background: rgba(239, 68, 68, 0.15);
+        color: #dc2626;
+        border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
     @keyframes slideIn {
         from {
             transform: translateY(-15px);
@@ -187,89 +245,44 @@
             opacity: 1;
         }
     }
-
-    /* Status badges */
-    .status-badge {
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        text-transform: capitalize;
-        display: inline-block;
-    }
-
-    /* Confirmed (green) */
-    .status-confirmed {
-        background: rgba(34, 197, 94, 0.15);
-        color: #22c55e;
-        border: 1px solid rgba(34, 197, 94, 0.4);
-    }
-
-    /* Pending (amber) */
-    .status-pending {
-        background: rgba(251, 191, 36, 0.15);
-        color: #d97706;
-        border: 1px solid rgba(251, 191, 36, 0.4);
-    }
-
-    /* Active (blue) */
-    .status-active {
-        background: rgba(59, 130, 246, 0.15);
-        color: #2563eb;
-        border: 1px solid rgba(59, 130, 246, 0.4);
-    }
-
-    /* Completed (teal/emerald) */
-    .status-completed {
-        background: rgba(16, 185, 129, 0.15);
-        color: #059669;
-        border: 1px solid rgba(16, 185, 129, 0.4);
-    }
-
-    /* Cancelled (red) */
-    .status-cancelled {
-        background: rgba(239, 68, 68, 0.15);
-        color: #dc2626;
-        border: 1px solid rgba(239, 68, 68, 0.4);
-    }
-
-    /* No show (gray) */
-    .status-no_show {
-        background: rgba(107, 114, 128, 0.15);
-        color: #6b7280;
-        border: 1px solid rgba(107, 114, 128, 0.4);
-    }
 </style>
 
-
-<header>
-    <div class="header-title" style="margin-bottom:1.5rem;">
+<header class="header-title"
+    style="flex-direction: row; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
         <h1>Your Appointments</h1>
         <p>Track your upcoming and past visits</p>
     </div>
     <div>
-        <a class="btn btn-primary" href="{{ url_for('book_appointment') }}">+ Book New Appointment</a>
+        <a class="btn btn-primary-outline" href="{{ url_for('book_appointment') }}"><i class="fas fa-plus"></i> Book New
+            Appointment</a>
     </div>
 </header>
 
-{# show alert if any upcoming appointment is within 10 minutes #}
 {% for a in appointments %}
 {% set diff = (a.start_at - now).total_seconds() / 60 %}
-{% if 0 < diff <=10 %} <div class="appointment-alert fade-in">
+{% if 0 < diff and diff <=10 %} <div class="appointment-alert">
     <div class="alert-icon"><i class="fas fa-bell"></i></div>
     <div class="alert-content">
-        <h4>Upcoming Appointment</h4>
-        <p>Your appointment with <strong>{{ a.doctor_name }}</strong> starts in
-            <strong>{{ diff|round(0) }} minutes</strong>.
-        </p>
+        <h4>Appointment Starting Soon</h4>
+        <p>Your appointment with <strong>{{ a.doctor_name }}</strong> starts in <strong>{{ diff|round(0) }}
+                minutes</strong>.</p>
     </div>
     </div>
     {% endif %}
     {% endfor %}
 
-    <div class="timeline">
-        {% if appointments %}
-        {% for a in appointments %}
+    <div class="tabs-container">
+        <button class="tab-link active" onclick="openTab(event, 'upcoming')">Upcoming</button>
+        <button class="tab-link" onclick="openTab(event, 'past')">Past</button>
+        <button class="tab-link" onclick="openTab(event, 'cancelled')">Cancelled</button>
+    </div>
+
+    <div id="upcoming" class="tab-content active">
+        {% set upcoming_appointments = appointments | selectattr('status', 'in', ['confirmed', 'pending', 'active']) |
+        list %}
+        {% if upcoming_appointments %}
+        {% for a in upcoming_appointments %}
         <div class="timeline-item">
             <div class="timeline-content">
                 <h3 class="appt-title">{{ specialties[a.specialty].name }} with {{ a.doctor_name }}</h3>
@@ -277,35 +290,98 @@
                     <span><i class="fas fa-calendar"></i> {{ a.start_at.strftime('%B %d, %Y') }}</span>
                     <span><i class="fas fa-clock"></i> {{ a.start_at.strftime('%I:%M %p') }} - {{
                         a.end_at.strftime('%I:%M %p') }}</span>
-                    <span>
-                        {% if a.status == "confirmed" %}
-                        <span class="status-badge status-confirmed">{{ a.status }}</span>
-                        {% elif a.status == "pending" %}
-                        <span class="status-badge status-pending">{{ a.status }}</span>
-                        {% elif a.status == "cancelled" %}
-                        <span class="status-badge status-cancelled">{{ a.status }}</span>
-                        {% elif a.status == "completed" %}
-                        <span class="status-badge status-completed">{{ a.status }}</span>
-                        {% else %}
-                        <span class="status-badge">{{ a.status }}</span>
-                        {% endif %}
-                    </span>
+                    <span><span class="status-badge status-{{a.status}}">{{ a.status }}</span></span>
                 </div>
-                {% if a.notes %}
-                <p class="appt-notes">Notes: {{ a.notes }}</p>
-                {% endif %}
+                {% if a.notes %}<p class="appt-notes">Your Notes: {{ a.notes }}</p>{% endif %}
+
+                <div class="appt-actions">
+                    {% if a.status == 'active' and a.meeting_link %}
+                    <a href="{{ a.meeting_link }}" target="_blank" class="btn btn-success"><i class="fas fa-video"></i>
+                        Join Meeting</a>
+                    {% endif %}
+                    <a href="{{ url_for('book_appointment', reschedule_id=a._id) }}" class="btn btn-secondary"><i
+                            class="fas fa-calendar-alt"></i> Reschedule</a>
+                    <form action="{{ url_for('cancel_appointment', appointment_id=a._id) }}" method="POST"
+                        style="display: inline;"
+                        onsubmit="return confirm('Are you sure you want to cancel this appointment?');">
+                        <button type="submit" class="btn btn-danger-outline"><i class="fas fa-times"></i>
+                            Cancel</button>
+                    </form>
+                </div>
             </div>
         </div>
         {% endfor %}
         {% else %}
-        <div class="timeline-item">
-            <div class="timeline-content" style="text-align:center;">
-                <i class="fas fa-calendar-times" style="font-size:2rem; opacity:0.6;"></i>
-                <p style="margin-top:0.5rem;">No appointments yet</p>
-            </div>
-        </div>
+        <p>You have no upcoming appointments.</p>
         {% endif %}
     </div>
 
+    <div id="past" class="tab-content">
+        {% set past_appointments = appointments | selectattr('status', 'in', ['completed']) | list %}
+        {% if past_appointments %}
+        {% for a in past_appointments %}
+        <div class="timeline-item">
+            <div class="timeline-content">
+                <h3 class="appt-title">{{ specialties[a.specialty].name }} with {{ a.doctor_name }}</h3>
+                <div class="appt-meta">
+                    <span><i class="fas fa-calendar"></i> {{ a.start_at.strftime('%B %d, %Y') }}</span>
+                    <span><i class="fas fa-check-circle"></i> {{ a.start_at.strftime('%I:%M %p') }}</span>
+                    <span><span class="status-badge status-{{a.status}}">{{ a.status }}</span></span>
+                </div>
+                {% if a.diagnosis %}<p class="appt-notes">Diagnosis: {{ a.diagnosis }}</p>{% endif %}
 
+                <div class="appt-actions">
+                    <a href="{{ url_for('appointment_details', appointment_id=a._id) }}"
+                        class="btn btn-primary-outline"><i class="fas fa-notes-medical"></i> View Details</a>
+                    <a href="{{ url_for('book_appointment', specialty=a.specialty) }}" class="btn btn-secondary"><i
+                            class="fas fa-redo"></i> Book Again</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p>You have no past appointments.</p>
+        {% endif %}
+    </div>
+
+    <div id="cancelled" class="tab-content">
+        {% set cancelled_appointments = appointments | selectattr('status', 'in', ['cancelled', 'no_show']) | list %}
+        {% if cancelled_appointments %}
+        {% for a in cancelled_appointments %}
+        <div class="timeline-item">
+            <div class="timeline-content">
+                <h3 class="appt-title">{{ specialties[a.specialty].name }} with {{ a.doctor_name }}</h3>
+                <div class="appt-meta">
+                    <span><i class="fas fa-calendar"></i> {{ a.start_at.strftime('%B %d, %Y') }}</span>
+                    <span><i class="fas fa-clock"></i> {{ a.start_at.strftime('%I:%M %p') }}</span>
+                    <span><span class="status-badge status-{{a.status}}">{{ a.status.replace('_', ' ') }}</span></span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p>You have no cancelled appointments.</p>
+        {% endif %}
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            // Hide all tab content
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+
+            // Deactivate all tab links
+            tablinks = document.getElementsByClassName("tab-link");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+
+            // Show the current tab and activate its link
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+    </script>
     {% endblock %}

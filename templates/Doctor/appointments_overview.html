@@ -2,19 +2,41 @@
 {% block title %}Appointments Overview - Healthify{% endblock %}
 {% block content %}
 <style>
+    /* Page Header */
     .page-header {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(12px);
+        padding: 1.5rem;
+        border-radius: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
         margin-bottom: 2rem;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        animation: fadeInDown 0.5s ease;
     }
 
     .page-header h2 {
         font-size: 1.5rem;
         font-weight: 700;
-        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .page-header h2 i {
+        color: var(--primary-color);
     }
 
     .page-header p {
-        margin: 0.25rem 0 0;
         color: var(--text-light);
+        font-size: 0.95rem;
+    }
+
+    @keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-15px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     /* Tabs */
@@ -22,30 +44,34 @@
         display: flex;
         gap: 1rem;
         margin-bottom: 1.5rem;
+        flex-wrap: wrap;
     }
 
     .tab {
-        padding: .75rem 1.5rem;
-        border-radius: 12px;
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        font-weight: 600;
+        padding: .6rem 1.2rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         cursor: pointer;
         transition: all .25s ease;
+        font-weight: 600;
+        color: var(--text-light);
+        backdrop-filter: blur(8px);
     }
 
     .tab:hover {
-        background: var(--background-color);
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
     }
 
     .tab.active {
-        background: var(--primary-color);
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
         color: #fff;
-        border-color: var(--primary-color);
-        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        box-shadow: 0 4px 15px rgba(96, 165, 250, 0.4);
+        border-color: transparent;
     }
 
-    /* Tab content */
+    /* Tab content animation */
     .tab-content {
         display: none;
     }
@@ -56,24 +82,19 @@
     }
 
     @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Table card */
+    /* Table Card */
     .table-wrapper {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
         overflow: hidden;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+        animation: fadeIn 0.4s ease;
     }
 
     .table {
@@ -84,8 +105,8 @@
     .table th,
     .table td {
         padding: 1rem;
-        border-bottom: 1px solid var(--border-color);
         text-align: left;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .table th {
@@ -95,17 +116,18 @@
         letter-spacing: .5px;
     }
 
-    .table tr:hover td {
-        background: rgba(59, 130, 246, 0.05);
+    .table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.05);
     }
 
     /* Status badges */
     .status-badge {
-        padding: 4px 10px;
-        border-radius: 20px;
+        padding: 5px 12px;
+        border-radius: 999px;
         font-size: .75rem;
         font-weight: 600;
         text-transform: capitalize;
+        display: inline-block;
     }
 
     .status-confirmed {
@@ -133,15 +155,16 @@
         color: #6b7280;
     }
 
-    /* Buttons */
+    /* View link */
     .btn-link {
         color: var(--primary-color);
         font-weight: 600;
         text-decoration: none;
+        transition: color 0.2s;
     }
 
     .btn-link:hover {
-        text-decoration: underline;
+        color: var(--secondary-color);
     }
 </style>
 
@@ -197,7 +220,6 @@
     <p style="padding:1rem; color:var(--text-light);">No upcoming appointments.</p>
     {% endif %}
 </div>
-
 
 <!-- COMPLETED -->
 <div id="completed" class="tab-content">
@@ -299,13 +321,12 @@
 </div>
 
 <script>
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            tab.classList.add('active');
-            document.getElementById(tab.dataset.tab).classList.add('active');
-        });
+    $('.tab').on('click', function() {
+        const tabId = $(this).data('tab');
+        $('.tab').removeClass('active');
+        $('.tab-content').removeClass('active');
+        $(this).addClass('active');
+        $('#' + tabId).addClass('active');
     });
 </script>
 {% endblock %}

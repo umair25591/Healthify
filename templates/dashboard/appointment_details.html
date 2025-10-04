@@ -1,0 +1,288 @@
+{% extends "layout.html" %}
+
+{% block title %}Appointment Details - Healthify{% endblock %}
+
+{% block content %}
+<style>
+    .details-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Back Link */
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        color: var(--primary-color);
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+
+    .back-link:hover {
+        color: var(--secondary-color);
+    }
+
+    /* Header Card */
+    .details-header-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 18px;
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+    }
+
+    .header-left {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .header-left h1 {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .header-left h1 i {
+        color: var(--primary-color);
+        font-size: 1.5rem;
+    }
+
+    .header-left p {
+        color: var(--text-light);
+        margin: 0;
+        font-size: 0.95rem;
+    }
+
+    .header-right .status-badge {
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+
+    .status-confirmed {
+        background: rgba(34, 197, 94, .15);
+        color: #22c55e;
+    }
+
+    .status-active {
+        background: rgba(59, 130, 246, .15);
+        color: #2563eb;
+    }
+
+    .status-completed {
+        background: rgba(16, 185, 129, .15);
+        color: #059669;
+    }
+
+    .status-cancelled {
+        background: rgba(239, 68, 68, .15);
+        color: #dc2626;
+    }
+
+    .status-pending {
+        background: rgba(234, 179, 8, .15);
+        color: #eab308;
+    }
+
+    /* Details Grid */
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.2rem;
+    }
+
+    .detail-item {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 14px;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        transition: transform 0.2s ease;
+    }
+
+    .detail-item:hover {
+        transform: translateY(-3px);
+    }
+
+    .detail-item .label {
+        font-size: 0.85rem;
+        color: var(--text-light);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .detail-item .label i {
+        color: var(--primary-color);
+        font-size: 1rem;
+    }
+
+    .detail-item .value {
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    /* Section Headings */
+    .section-heading {
+        font-size: 1.2rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+    }
+
+    .section-heading i {
+        color: var(--primary-color);
+    }
+
+    /* Cards */
+    .details-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 18px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+    }
+
+    .summary-content {
+        color: var(--text-secondary);
+        line-height: 1.7;
+    }
+
+    .summary-content h4 {
+        font-size: 1rem;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+
+    .summary-placeholder {
+        text-align: center;
+        padding: 2rem;
+        border-radius: 14px;
+        border: 2px dashed rgba(255, 255, 255, 0.15);
+        color: var(--text-light);
+    }
+
+    @media (max-width: 600px) {
+        .header-left h1 {
+            font-size: 1.3rem;
+        }
+    }
+</style>
+
+<div class="details-container">
+
+    <!-- Back -->
+    <a href="{{ url_for('appointments') }}" class="back-link">
+        <i class="fas fa-arrow-left"></i> Back to All Appointments
+    </a>
+
+    <!-- Header -->
+    <div class="details-header-card">
+        <div class="header-left">
+            <h1><i class="fas fa-stethoscope"></i> {{ appointment.specialty|capitalize }} Consultation</h1>
+            <p>with <strong>{{ appointment.doctor_name }}</strong></p>
+        </div>
+        <div class="header-right">
+            <span class="status-badge status-{{ appointment.status }}">{{ appointment.status.replace('_', ' ') }}</span>
+        </div>
+    </div>
+
+    <!-- Details Grid -->
+    <div class="details-grid">
+        <div class="detail-item">
+            <div class="label"><i class="fas fa-user"></i> Patient</div>
+            <div class="value">{{ appointment.patient_name }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="label"><i class="fas fa-calendar"></i> Date</div>
+            <div class="value">{{ appointment.start_at.strftime('%A, %B %d, %Y') }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="label"><i class="fas fa-clock"></i> Time</div>
+            <div class="value">{{ appointment.start_at.strftime('%I:%M %p') }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="label"><i class="fas fa-user-md"></i> Doctor</div>
+            <div class="value">{{ appointment.doctor_name }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="label"><i class="fas fa-briefcase-medical"></i> Specialty</div>
+            <div class="value">{{ appointment.specialty|capitalize }}</div>
+        </div>
+        <div class="detail-item">
+            <div class="label"><i class="fas fa-info-circle"></i> Status</div>
+            <div class="value" style="text-transform: capitalize;">{{ appointment.status.replace('_', ' ') }}</div>
+        </div>
+    </div>
+
+    <!-- Patient Notes -->
+    {% if appointment.notes %}
+    <div class="details-card">
+        <div class="section-heading"><i class="fas fa-file-alt"></i> Patient's Notes</div>
+        <div class="summary-content">
+            <p><em>{{ appointment.notes }}</em></p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Doctor Summary -->
+    <div class="details-card">
+        <div class="section-heading"><i class="fas fa-user-md"></i> Doctor's Summary</div>
+
+        {% if appointment.status == 'completed' %}
+        <div class="summary-content">
+            <h4><i class="fas fa-notes-medical"></i> Diagnosis</h4>
+            <p>{{ appointment.diagnosis or "No diagnosis provided." }}</p>
+
+            <h4><i class="fas fa-pills"></i> Prescription</h4>
+            <p>{{ appointment.prescription or "No prescription provided." }}</p>
+
+            <h4><i class="fas fa-comment-medical"></i> General Notes</h4>
+            <p>{{ appointment.doctor_notes or "No additional notes from the doctor." }}</p>
+        </div>
+        {% else %}
+        <div class="summary-placeholder">
+            <p>The doctor's summary will be available here after your appointment is completed.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
