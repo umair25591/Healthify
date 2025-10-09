@@ -3,7 +3,8 @@
 {% block title %}Tabular Prediction - Healthify{% endblock %}
 
 {% block content %}
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/tabular_prediction.css') }}">
 
 <header>
@@ -13,16 +14,35 @@
     </div>
 </header>
 
-<div class="prediction-selector">
-    <button class="disease-toggle active" data-target="heart-tab">Heart Disease</button>
-    <button class="disease-toggle" data-target="kidney-tab">Kidney Disease</button>
+<div class="toggle-div-box">
+    <fieldset class="switcher" id="diseaseSwitcher">
+        <!-- Heart Disease -->
+        <input class="switcher__input" type="radio" name="disease" value="heart" c-option="1" id="heart"
+            data-target="heart-tab" checked>
+        <label class="switcher__label" for="heart">Heart Disease</label>
+
+        <!-- Kidney Disease -->
+        <input class="switcher__input" type="radio" name="disease" value="kidney" c-option="2" id="kidney"
+            data-target="kidney-tab">
+        <label class="switcher__label" for="kidney">Kidney Disease</label>
+    </fieldset>
+    <!-- SVG Liquid Filter -->
+    <svg style="display:none">
+        <filter id="switcher" x="-50%" y="-50%" width="200%" height="200%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" />
+        </filter>
+    </svg>
 </div>
+
+
+
 
 <div class="tab-content">
 
     <!-- Heart Disease Form -->
     <div id="heart-tab" class="tab-pane active">
-        
+
         <form action="{{ url_for('tabular_prediction') }}" method="POST">
 
             <input type="hidden" name="diseaseType" value="heart">
@@ -31,23 +51,27 @@
 
                 <div id="physical-metrics" class="col-12">
                     <div class="form-cards">
-                        <div class="module-header"><i class="fas fa-ruler-combined"></i> Physical Metrics <i class="fas fa-check-circle status-icon"></i></div>
+                        <div class="module-header"><i class="fas fa-ruler-combined"></i> Physical Metrics <i
+                                class="fas fa-check-circle status-icon"></i></div>
 
                         <div class="form-group" data-disease="heart">
                             <label for="BMI">Enter your BMI (kg/m²)</label>
-                            <input type="number" step="0.1" id="BMI" name="BMI" placeholder="e.g., 24.5" min="10" max="60" required>
+                            <input type="number" step="0.1" id="BMI" name="BMI" placeholder="e.g., 24.5" min="10"
+                                max="60" required>
                         </div>
 
                         <div class="form-group" data-disease="heart">
                             <label for="SleepTime">How many hours do you sleep on average per night?</label>
-                            <input type="number" id="SleepTime" name="SleepTime" placeholder="e.g., 7" min="0" max="24" required>
+                            <input type="number" id="SleepTime" name="SleepTime" placeholder="e.g., 7" min="0" max="24"
+                                required>
                         </div>
                     </div>
                 </div>
 
                 <div id="medical-history" class="col-12">
                     <div class="form-cards">
-                        <div class="module-header"><i class="fas fa-notes-medical"></i> Medical History <i class="fas fa-check-circle status-icon"></i></div>
+                        <div class="module-header"><i class="fas fa-notes-medical"></i> Medical History <i
+                                class="fas fa-check-circle status-icon"></i></div>
 
                         <div class="form-group" data-disease="heart">
                             <label for="GenHealth">How would you rate your general health?</label>
@@ -62,28 +86,34 @@
                         </div>
 
                         <div class="form-group" data-disease="heart">
-                            <label for="PhysicalHealth">In the past 30 days, on how many days was your physical health not good?</label>
-                            <input type="number" id="PhysicalHealth" name="PhysicalHealth" placeholder="Enter days (0-30)" min="0" max="30" required>
+                            <label for="PhysicalHealth">In the past 30 days, on how many days was your physical health
+                                not good?</label>
+                            <input type="number" id="PhysicalHealth" name="PhysicalHealth"
+                                placeholder="Enter days (0-30)" min="0" max="30" required>
                         </div>
 
                         <div class="form-group" data-disease="heart">
-                            <label for="MentalHealth">In the past 30 days, on how many days was your mental health not good?</label>
-                            <input type="number" id="MentalHealth" name="MentalHealth" placeholder="Enter days (0-30)" min="0" max="30" required>
+                            <label for="MentalHealth">In the past 30 days, on how many days was your mental health not
+                                good?</label>
+                            <input type="number" id="MentalHealth" name="MentalHealth" placeholder="Enter days (0-30)"
+                                min="0" max="30" required>
                         </div>
                     </div>
                 </div>
 
                 <div id="demographics" class="col-12">
                     <div class="form-cards">
-                        <div class="module-header"><i class="fas fa-user-friends"></i> Demographics <i class="fas fa-check-circle status-icon"></i></div>
+                        <div class="module-header"><i class="fas fa-user-friends"></i> Demographics <i
+                                class="fas fa-check-circle status-icon"></i></div>
 
                         <div class="form-group" data-disease="heart">
                             <label for="AgeCategory">Enter your age in years</label>
-                            <input type="number" id="AgeCategory" name="AgeCategory" placeholder="e.g., 45" min="1" max="100" required>
+                            <input type="number" id="AgeCategory" name="AgeCategory" placeholder="e.g., 45" min="1"
+                                max="100" required>
                         </div>
                     </div>
                 </div>
-                
+
                 <div id="lifestyle" class="col-12 col-md-6"></div>
 
                 <div class="submit-container">
@@ -105,7 +135,8 @@
 
                 <div id="kidney-physical-metrics" class="col-12">
                     <div class="form-cards">
-                        <div class="module-header"><i class="fas fa-ruler-combined"></i> Physical Metrics <i class="fas fa-check-circle status-icon"></i></div>
+                        <div class="module-header"><i class="fas fa-ruler-combined"></i> Physical Metrics <i
+                                class="fas fa-check-circle status-icon"></i></div>
 
                         <div class="form-group" data-disease="kidney">
                             <label for="KidneyBMI">Enter your BMI (kg/m²)</label>
@@ -121,8 +152,9 @@
 
                 <div id="kidney-medical-history" class="col-12">
                     <div class="form-cards">
-                        <div class="module-header"><i class="fas fa-notes-medical"></i> Medical History <i class="fas fa-check-circle status-icon"></i></div>
-                        
+                        <div class="module-header"><i class="fas fa-notes-medical"></i> Medical History <i
+                                class="fas fa-check-circle status-icon"></i></div>
+
                         <div class="form-group" data-disease="kidney">
                             <label for="KidneyHeartDisease">Have you ever been diagnosed with heart disease?</label>
                             <select id="KidneyHeartDisease" name="HeartDisease" required>
@@ -146,12 +178,14 @@
 
                         <div class="form-group" data-disease="kidney">
                             <label for="KidneyPhysicalHealth">Physical unhealthy days (in past 30 days)</label>
-                            <input type="number" id="KidneyPhysicalHealth" name="PhysicalHealth" placeholder="Enter days (0-30)" min="0" max="30" required>
+                            <input type="number" id="KidneyPhysicalHealth" name="PhysicalHealth"
+                                placeholder="Enter days (0-30)" min="0" max="30" required>
                         </div>
 
                         <div class="form-group" data-disease="kidney">
                             <label for="KidneyMentalHealth">Mental unhealthy days (in past 30 days)</label>
-                            <input type="number" id="KidneyMentalHealth" name="MentalHealth" placeholder="Enter days (0-30)" min="0" max="30" required>
+                            <input type="number" id="KidneyMentalHealth" name="MentalHealth"
+                                placeholder="Enter days (0-30)" min="0" max="30" required>
                         </div>
 
                         <div class="form-group" data-disease="kidney">
@@ -178,7 +212,8 @@
 
                 <div id="kidney-demographics" class="col-12">
                     <div class="form-cards">
-                        <div class="module-header"><i class="fas fa-user-friends"></i> Demographics <i class="fas fa-check-circle status-icon"></i></div>
+                        <div class="module-header"><i class="fas fa-user-friends"></i> Demographics <i
+                                class="fas fa-check-circle status-icon"></i></div>
 
                         <div class="form-group" data-disease="kidney">
                             <label for="KidneyAgeCategory">Select your age category</label>
@@ -214,7 +249,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div id="kidney-lifestyle" class="col-12"></div>
 
                 <div class="submit-container">
@@ -230,7 +265,9 @@
 
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"
+    integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF"
+    crossorigin="anonymous"></script>
 <script src="{{ url_for('static', filename='js/tabular_prediction.js') }}"></script>
 
 {% endblock %}

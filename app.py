@@ -1,10 +1,16 @@
+import os
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+
+import warnings
+warnings.filterwarnings("ignore", message="Do not pass an `input_shape`")
+
 from flask import Flask, render_template, request, jsonify, redirect, url_for, abort, make_response, session
 from flask_pymongo import PyMongo
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from bson.objectid import ObjectId
-import os
 from dotenv import load_dotenv
 import joblib
 import numpy as np
@@ -15,7 +21,6 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from keras.models import load_model
 from PIL import Image
-import io
 from ml_utils import generate_shap_plot_base64, generate_insights
 from fpdf import FPDF
 from fpdf.enums import XPos, YPos
@@ -81,16 +86,14 @@ def ensure_models():
         if not os.path.exists(model_path):
             print(f"{model_file} missing, downloading...")
             download_and_extract(info["url"], target_dir, info["zip_name"])
-        else:
-            print(f"{model_file} already exists ✅")
 
 try:
     ensure_models()
 
     heart_model = joblib.load("model/tabular_heart_disease_model_v1.pkl")
     kidney_model = joblib.load("model/tabular_kidney_disease_model_v1.pkl")
-    retinopathy_model = load_model("model/image_retinopathy_model_v1.h5")
-    chest_model = load_model("model/image_chest_xray_model_v1.h5")
+    retinopathy_model = load_model("model/image_retinopathy_model_v1.h5", compile=False)
+    chest_model = load_model("model/image_chest_xray_model_v1.h5", compile=False)
 
     with open('model/xray_feature_bank.pkl', 'rb') as f:
         xray_feature_bank = pickle.load(f)
@@ -589,7 +592,7 @@ def extract_feature(img_path_or_stream, target_size=(224, 224)):
     return feat[0]
 
 
-xray_feature_extractor = MobileNetV2(weights='imagenet', include_top=False, pooling='avg')
+xray_feature_extractor = MobileNetV2(weights='imagenet', include_top=False, pooling='avg', input_shape=(224, 224, 3))
 
 def is_valid_xray_image(img_file, threshold=0.6):
     if not xray_feature_bank:
@@ -831,7 +834,7 @@ def image_prediction():
 
         if analysis_type == 'retinopathy':
             model = retinopathy_model
-            target_size = (150, 150)
+            target_size = (224, 224)
             class_labels = ['Negative', 'Positive']
         elif analysis_type == 'xray':
             model = chest_model

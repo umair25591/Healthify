@@ -71,9 +71,31 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.5rem 5rem;
+    margin: 1.5rem 5rem;
+    padding: 10px 40px;
+    border-radius: 50px;
     position: relative;
-    z-index: 10;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color-light);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+header nav {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 2.5rem;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    header nav {
+        position: static;
+        transform: none;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
 }
 
 header .logo {
