@@ -99,11 +99,13 @@ try:
     retinopathy_model = load_model("model/image_retinopathy_model_v1.h5", compile=False)
     chest_model = load_model("model/image_chest_xray_model_v1.h5", compile=False)
 
+    print(retinopathy_model.summary())
+
     with open('model/diabetic_retinopathy_feature_bank.pkl', 'rb') as f:
-        xray_feature_bank = pickle.load(f)
+        retinopathy_feature_bank = pickle.load(f)
     
     with open('model/xray_feature_bank.pkl', 'rb') as f:
-        retinopathy_feature_bank = pickle.load(f)
+        xray_feature_bank= pickle.load(f)
 
 
     heart_explainer = shap.TreeExplainer(heart_model)
@@ -866,7 +868,7 @@ def image_prediction():
 
         if analysis_type == 'retinopathy':
             model = retinopathy_model
-            target_size = (224, 224)
+            target_size = (150, 150)
             class_labels = ['Negative', 'Positive']
         elif analysis_type == 'xray':
             model = chest_model
