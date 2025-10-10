@@ -76,6 +76,10 @@ def ensure_models():
         "xray_feature_bank.pkl": {
             "url": "https://github.com/umair25591/Healthify/releases/download/v1.0.0/xray_feature_bank.zip",
             "zip_name": "xray_feature_bank.zip"
+        },
+        "diabetic_retinopathy_feature_bank.pkl": {
+            "url": "https://github.com/umair25591/Healthify/releases/download/v1.0.0/diabetic_retinopathy_feature_bank.zip",
+            "zip_name": "diabetic_retinopathy_feature_bank.zip"
         }
     }
 
@@ -95,8 +99,11 @@ try:
     retinopathy_model = load_model("model/image_retinopathy_model_v1.h5", compile=False)
     chest_model = load_model("model/image_chest_xray_model_v1.h5", compile=False)
 
-    with open('model/xray_feature_bank.pkl', 'rb') as f:
+    with open('model/diabetic_retinopathy_feature_bank.pkl', 'rb') as f:
         xray_feature_bank = pickle.load(f)
+    
+    with open('model/xray_feature_bank.pkl', 'rb') as f:
+        retinopathy_feature_bank = pickle.load(f)
 
 
     heart_explainer = shap.TreeExplainer(heart_model)
@@ -610,6 +617,25 @@ def is_valid_xray_image(img_file, threshold=0.6):
 
     return max_sim >= threshold
 
+def is_valid_retinopathy_image(img_file, threshold=0.6):
+    
+    if not retinopathy_feature_bank:
+        print("⚠️ Retinopathy feature bank is empty. Bypassing validation.")
+        return True
+
+    query_feat = extract_feature(img_file)
+
+    similarities = [
+        cosine_similarity([query_feat], [ref_feat])[0][0]
+        for ref_feat in retinopathy_feature_bank.values()
+    ]
+    
+    max_sim = max(similarities) if similarities else 0
+
+    print(f"👁️ Max Retinopathy similarity: {max_sim:.3f}")
+
+    return max_sim >= threshold
+
 
 @app.route('/')
 def home():
@@ -826,6 +852,12 @@ def image_prediction():
             if not is_valid_xray_image(image_file):
                 return jsonify({'error': 'The uploaded image does not appear to be a valid chest X-ray. Please upload a proper X-ray image.'}), 400
             image_file.stream.seek(0)
+
+        elif analysis_type == 'retinopathy':
+            image_file.stream.seek(0)
+            if not is_valid_retinopathy_image(image_file): # <-- New validation check
+                return jsonify({'error': 'The uploaded image does not appear to be a valid Retinal Fundus image. Please upload a proper image.'}), 400
+            image_file.stream.seek(0) #
 
         filename = secure_filename(image_file.filename)
         unique_filename = f"{uuid.uuid4().hex}_{filename}"

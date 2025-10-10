@@ -3,6 +3,8 @@
 This project uses **Flask**, MongoDB, and Machine Learning libraries.  
 Follow these steps to set up the project on your local machine.
 
+Python version must be 3.13
+
 ---
 
 ## 🚀 1. Clone the Repository
